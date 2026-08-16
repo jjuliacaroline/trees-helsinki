@@ -10,7 +10,7 @@ The web application foundation is initialized. The current UI shows an interacti
 
 ## Local development
 
-Requires Node.js ^20.19.0 or >=22.12.0.
+Requires Node.js >=22.12.0.
 
 ```bash
 npm install
