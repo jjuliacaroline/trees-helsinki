@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Map, NavigationControl, setWorkerUrl, type GeoJSONSource } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
@@ -36,7 +36,26 @@ export function HelsinkiMap() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
-  const filteredTrees = useMemo(() => filterTrees(allTrees, filters), [allTrees, filters])
+  const deferredSearch = useDeferredValue(filters.search)
+  const effectiveFilters = useMemo(
+    () => ({
+      search: deferredSearch,
+      genus: filters.genus,
+      species: filters.species,
+      mainType: filters.mainType,
+      plantingYear: filters.plantingYear,
+      sizeClass: filters.sizeClass,
+    }),
+    [
+      deferredSearch,
+      filters.genus,
+      filters.species,
+      filters.mainType,
+      filters.plantingYear,
+      filters.sizeClass,
+    ],
+  )
+  const filteredTrees = useMemo(() => filterTrees(allTrees, effectiveFilters), [allTrees, effectiveFilters])
   const filterOptions = useMemo(
     () => buildTreeFilterOptions(allTrees, filters.genus),
     [allTrees, filters.genus],
