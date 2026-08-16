@@ -1,0 +1,65 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 102,
+        "tunnus": "P-000102",
+        "kadunnimi": null,
+        "puistonnimi": "Esimerkkipuisto",
+        "paatyyppi": "Puisto",
+        "suomenknimi": "metsävaahtera",
+        "suku": "Acer",
+        "laji": "platanoides",
+        "kokoluokka": "20-30",
+        "istutusvuosi": null,
+        "datanomistaja": "Helsingin kaupunki",
+        "paivitetty_tietopalveluun": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [24.9512, 60.1718]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 101,
+        "tunnus": "K-000101",
+        "kadunnimi": "Esimerkkikatu",
+        "puistonnimi": null,
+        "paatyyppi": "Katu",
+        "suomenknimi": "lehmus",
+        "suku": "Tilia",
+        "laji": null,
+        "kokoluokka": "30-50",
+        "istutusvuosi": 1998,
+        "datanomistaja": "Helsingin kaupunki",
+        "paivitetty_tietopalveluun": "2026-08-01"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [24.9384, 60.1699]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 103,
+        "tunnus": "P-000103",
+        "kadunnimi": null,
+        "puistonnimi": "Toinen puisto",
+        "paatyyppi": "Puisto",
+        "suomenknimi": null,
+        "suku": null,
+        "laji": null,
+        "kokoluokka": null,
+        "istutusvuosi": null,
+        "datanomistaja": null,
+        "paivitetty_tietopalveluun": null
+      },
+      "geometry": null
+    }
+  ]
+}
