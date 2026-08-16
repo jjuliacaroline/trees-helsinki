@@ -2,11 +2,11 @@
 
 Trees Helsinki is a web application for exploring Helsinki's public tree registry on an interactive map.
 
-The application uses React, TypeScript, Vite, and MapLibre GL JS. It starts as a static client application; later issues will add a generated GeoJSON snapshot derived from Helsinki open data.
+The application uses React, TypeScript, Vite, and MapLibre GL JS. It starts as a static client application, with a generated GeoJSON snapshot derived from Helsinki open data.
 
 ## Project status
 
-The web application foundation is initialized. The current UI shows an interactive Helsinki map using MapLibre GL JS and an OpenFreeMap basemap. Tree-registry ingestion and tree rendering are intentionally tracked separately.
+The web application foundation is initialized and the repository includes a tested ingestion path for Helsinki's public tree registry. Rendering registered trees on the map is tracked separately.
 
 ## Local development
 
@@ -21,8 +21,27 @@ Useful checks:
 
 ```bash
 npm run check
+npm test
 npm run build
 ```
+
+## Tree data
+
+The source is the City of Helsinki `Puurekisteri_piste` WFS layer. Fetch the current registry snapshot with:
+
+```bash
+npm run data:fetch
+```
+
+The ingestion script requests GeoJSON from WFS 2.0 in WGS84 / EPSG:4326, validates the documented registry fields and point geometry, pages through the source deterministically by tree id, and writes the sorted result to:
+
+```text
+public/data/trees.geojson
+```
+
+The generated live snapshot is intentionally gitignored and should not be committed as normal repository history. Small source-like fixtures are committed only for deterministic tests.
+
+The registry contains public street and park trees and is not a complete inventory of every tree in Helsinki. Source records can also contain missing or inaccurate values, so unknown optional values remain `null` rather than being invented by the application.
 
 ## Product direction
 
@@ -37,6 +56,6 @@ The initial architecture does not require a custom backend, database, authentica
 
 ## Data
 
-Tree data will come from the City of Helsinki open tree registry. Source fields and application-derived classifications are kept separate, and generated live registry snapshots are treated as build artifacts rather than normal Git history.
+Tree data comes from the City of Helsinki open tree registry. Source fields and application-derived classifications are kept separate, and generated live registry snapshots are treated as build artifacts rather than normal Git history.
 
 Attribution and source licensing information will be shown alongside published data.
