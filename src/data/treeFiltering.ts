@@ -32,8 +32,7 @@ function normalized(value: string): string {
   return value.trim().toLocaleLowerCase('fi-FI')
 }
 
-function matchesSearch(tree: HelsinkiTreeFeature, search: string): boolean {
-  const query = normalized(search)
+function matchesSearch(tree: HelsinkiTreeFeature, query: string): boolean {
   if (!query) {
     return true
   }
@@ -58,6 +57,8 @@ export function filterTrees(
   trees: readonly HelsinkiTreeFeature[],
   filters: TreeFilters,
 ): HelsinkiTreeFeature[] {
+  const searchQuery = normalized(filters.search)
+
   return trees.filter((tree) => {
     if (!tree.geometry) {
       return false
@@ -66,7 +67,7 @@ export function filterTrees(
     const { properties } = tree
 
     return (
-      matchesSearch(tree, filters.search) &&
+      matchesSearch(tree, searchQuery) &&
       (!filters.genus || properties.suku === filters.genus) &&
       (!filters.species || properties.laji === filters.species) &&
       (!filters.mainType || properties.paatyyppi === filters.mainType) &&

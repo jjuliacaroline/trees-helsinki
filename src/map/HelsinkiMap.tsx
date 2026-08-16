@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Map, NavigationControl, setWorkerUrl, type GeoJSONSource } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
@@ -36,10 +36,19 @@ export function HelsinkiMap() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
-  const deferredSearch = useDeferredValue(filters.search)
+  const [effectiveSearch, setEffectiveSearch] = useState(filters.search)
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setEffectiveSearch(filters.search)
+    }, 200)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [filters.search])
+
   const effectiveFilters = useMemo(
     () => ({
-      search: deferredSearch,
+      search: effectiveSearch,
       genus: filters.genus,
       species: filters.species,
       mainType: filters.mainType,
@@ -47,7 +56,7 @@ export function HelsinkiMap() {
       sizeClass: filters.sizeClass,
     }),
     [
-      deferredSearch,
+      effectiveSearch,
       filters.genus,
       filters.species,
       filters.mainType,
