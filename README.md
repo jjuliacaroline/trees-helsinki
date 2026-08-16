@@ -2,11 +2,27 @@
 
 Trees Helsinki is a web application for exploring Helsinki's public tree registry on an interactive map.
 
-The project is intentionally starting as a static client application. The planned implementation uses React, TypeScript, Vite, MapLibre GL JS, and a generated GeoJSON snapshot derived from Helsinki open data.
+The application uses React, TypeScript, Vite, and MapLibre GL JS. It starts as a static client application; later issues will add a generated GeoJSON snapshot derived from Helsinki open data.
 
 ## Project status
 
-The repository currently contains only the project baseline. Application initialization is tracked in GitHub issue #1.
+The web application foundation is initialized. The current UI shows an interactive Helsinki map using MapLibre GL JS and an OpenFreeMap basemap. Tree-registry ingestion and tree rendering are intentionally tracked separately.
+
+## Local development
+
+Requires Node.js 20.19 or newer.
+
+```bash
+npm install
+npm run dev
+```
+
+Useful checks:
+
+```bash
+npm run check
+npm run build
+```
 
 ## Product direction
 
