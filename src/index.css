@@ -50,13 +50,15 @@ summary {
 }
 
 .tree-filter-panel label,
-.tree-filter-panel__search {
+.tree-filter-panel__search,
+.tree-filter-panel__fruit {
   display: grid;
   gap: 6px;
 }
 
 .tree-filter-panel label > span,
-.tree-filter-panel__search > span {
+.tree-filter-panel__search > span,
+.tree-filter-panel__fruit > span {
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -70,6 +72,16 @@ summary {
   border-radius: 8px;
   background: #fff;
   color: #111;
+}
+
+.tree-filter-panel__fruit {
+  margin-top: 12px;
+}
+
+.tree-filter-panel__fruit small {
+  color: #666;
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .tree-filter-panel__status {
@@ -152,6 +164,29 @@ summary {
   margin: 4px 0 0;
   color: #555;
   font-style: italic;
+}
+
+.tree-details__classification {
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid #c9ddce;
+  border-radius: 10px;
+  background: #f1f7f2;
+}
+
+.tree-details__classification-source {
+  margin: 0 0 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tree-details__classification p:last-child {
+  margin: 4px 0 0;
+  color: #555;
+  font-size: 0.82rem;
+  line-height: 1.35;
 }
 
 .tree-details__close {

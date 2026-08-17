@@ -1,3 +1,4 @@
+import { classifyTree } from '../data/treeClassifications'
 import type { HelsinkiTreeFeature } from '../data/treeRegistry'
 
 const UNKNOWN_VALUE = 'Ei tietoa'
@@ -34,6 +35,7 @@ function treeCoordinates(tree: HelsinkiTreeFeature): string {
 
 export function TreeDetailsPanel({ tree, onClose }: TreeDetailsPanelProps) {
   const { properties } = tree
+  const classification = classifyTree(tree)
 
   return (
     <aside className="tree-details" aria-label="Selected tree details">
@@ -47,6 +49,14 @@ export function TreeDetailsPanel({ tree, onClose }: TreeDetailsPanelProps) {
           ×
         </button>
       </div>
+
+      {classification ? (
+        <section className="tree-details__classification" aria-label="Trees Helsinki -luokitus">
+          <p className="tree-details__classification-source">Trees Helsinki -luokitus</p>
+          <strong>{classification.label}</strong>
+          <p>Syötävä hedelmäpuu · johdettu puun suvusta ja lajista.</p>
+        </section>
+      ) : null}
 
       <dl className="tree-details__list">
         <div>

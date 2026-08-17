@@ -50,6 +50,7 @@ export function HelsinkiMap() {
   const effectiveFilters = useMemo(
     () => ({
       search: effectiveSearch,
+      fruitCategory: filters.fruitCategory,
       genus: filters.genus,
       species: filters.species,
       mainType: filters.mainType,
@@ -58,6 +59,7 @@ export function HelsinkiMap() {
     }),
     [
       effectiveSearch,
+      filters.fruitCategory,
       filters.genus,
       filters.species,
       filters.mainType,
@@ -82,8 +84,8 @@ export function HelsinkiMap() {
   }, [treesById])
 
   const filterOptions = useMemo(
-    () => buildTreeFilterOptions(allTrees, filters.genus),
-    [allTrees, filters.genus],
+    () => buildTreeFilterOptions(allTrees, filters.genus, filters.fruitCategory),
+    [allTrees, filters.genus, filters.fruitCategory],
   )
 
   useEffect(() => {

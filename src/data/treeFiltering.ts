@@ -1,7 +1,12 @@
+import {
+  matchesFruitCategory,
+  type FruitCategoryFilter,
+} from './treeClassifications'
 import type { HelsinkiTreeFeature } from './treeRegistry'
 
 export interface TreeFilters {
   search: string
+  fruitCategory: FruitCategoryFilter
   genus: string
   species: string
   mainType: string
@@ -24,6 +29,7 @@ export interface SearchableTree {
 
 export const EMPTY_TREE_FILTERS: TreeFilters = {
   search: '',
+  fruitCategory: '',
   genus: '',
   species: '',
   mainType: '',
@@ -83,6 +89,7 @@ export function filterTrees(
 
       return (
         (!searchQuery || searchText.includes(searchQuery)) &&
+        matchesFruitCategory(tree, filters.fruitCategory) &&
         (!filters.genus || properties.suku === filters.genus) &&
         (!filters.species || properties.laji === filters.species) &&
         (!filters.mainType || properties.paatyyppi === filters.mainType) &&
@@ -100,32 +107,36 @@ function uniqueStrings(values: Array<string | null>): string[] {
 export function buildTreeFilterOptions(
   trees: readonly HelsinkiTreeFeature[],
   selectedGenus = '',
+  fruitCategory: FruitCategoryFilter = '',
 ): TreeFilterOptions {
-  const mappableTrees = trees.filter((tree) => tree.geometry)
+  const categoryTrees = trees.filter(
+    (tree) => tree.geometry && matchesFruitCategory(tree, fruitCategory),
+  )
   const speciesTrees = selectedGenus
-    ? mappableTrees.filter((tree) => tree.properties.suku === selectedGenus)
-    : mappableTrees
+    ? categoryTrees.filter((tree) => tree.properties.suku === selectedGenus)
+    : categoryTrees
 
   const plantingYears = [
     ...new Set(
-      mappableTrees
+      categoryTrees
         .map((tree) => tree.properties.istutusvuosi)
         .filter((value): value is number => value !== null),
     ),
   ].sort((left, right) => right - left)
 
   return {
-    genera: uniqueStrings(mappableTrees.map((tree) => tree.properties.suku)),
+    genera: uniqueStrings(categoryTrees.map((tree) => tree.properties.suku)),
     species: uniqueStrings(speciesTrees.map((tree) => tree.properties.laji)),
-    mainTypes: uniqueStrings(mappableTrees.map((tree) => tree.properties.paatyyppi)),
+    mainTypes: uniqueStrings(categoryTrees.map((tree) => tree.properties.paatyyppi)),
     plantingYears,
-    sizeClasses: uniqueStrings(mappableTrees.map((tree) => tree.properties.kokoluokka)),
+    sizeClasses: uniqueStrings(categoryTrees.map((tree) => tree.properties.kokoluokka)),
   }
 }
 
 export function hasActiveTreeFilters(filters: TreeFilters): boolean {
   return (
     Boolean(filters.search.trim()) ||
+    Boolean(filters.fruitCategory) ||
     Boolean(filters.genus) ||
     Boolean(filters.species) ||
     Boolean(filters.mainType) ||
