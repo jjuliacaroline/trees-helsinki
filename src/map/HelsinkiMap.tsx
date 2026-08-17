@@ -9,12 +9,12 @@ import {
   type TreeFilters,
 } from '../data/treeFiltering'
 import {
-  normalizeTreeFeature,
   normalizeTreeFeatureCollection,
   type HelsinkiTreeFeature,
 } from '../data/treeRegistry'
 import { TreeDetailsPanel } from './TreeDetailsPanel'
 import { TreeFilterPanel } from './TreeFilterPanel'
+import { projectTreesForMap } from './treeMapData'
 
 setWorkerUrl(maplibreWorkerUrl)
 
@@ -65,6 +65,17 @@ export function HelsinkiMap() {
     ],
   )
   const filteredTrees = useMemo(() => filterTrees(allTrees, effectiveFilters), [allTrees, effectiveFilters])
+  const mapFeatures = useMemo(() => projectTreesForMap(filteredTrees), [filteredTrees])
+  const treesById = useMemo(
+    () => new globalThis.Map(allTrees.map((tree) => [tree.properties.id, tree] as const)),
+    [allTrees],
+  )
+  const treesByIdRef = useRef(treesById)
+
+  useEffect(() => {
+    treesByIdRef.current = treesById
+  }, [treesById])
+
   const filterOptions = useMemo(
     () => buildTreeFilterOptions(allTrees, filters.genus),
     [allTrees, filters.genus],
@@ -207,14 +218,13 @@ export function HelsinkiMap() {
 
     map.on('click', TREE_LAYER_ID, (event) => {
       const feature = event.features?.[0]
-      if (!feature) {
+      if (!feature || typeof feature.id !== 'number') {
         return
       }
 
-      try {
-        setSelectedTree(normalizeTreeFeature(feature))
-      } catch (error) {
-        console.error('Could not read selected tree feature', error)
+      const tree = treesByIdRef.current.get(feature.id)
+      if (tree) {
+        setSelectedTree(tree)
       }
     })
 
@@ -248,9 +258,9 @@ export function HelsinkiMap() {
 
     source.setData({
       type: 'FeatureCollection',
-      features: filteredTrees,
+      features: mapFeatures,
     } as Parameters<GeoJSONSource['setData']>[0])
-  }, [filteredTrees, mapReady])
+  }, [mapFeatures, mapReady])
 
   useEffect(() => {
     if (
