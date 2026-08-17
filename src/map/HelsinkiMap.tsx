@@ -54,7 +54,8 @@ export function HelsinkiMap() {
       genus: filters.genus,
       species: filters.species,
       mainType: filters.mainType,
-      plantingYear: filters.plantingYear,
+      plantingYearFrom: filters.plantingYearFrom,
+      plantingYearTo: filters.plantingYearTo,
       sizeClass: filters.sizeClass,
     }),
     [
@@ -63,7 +64,8 @@ export function HelsinkiMap() {
       filters.genus,
       filters.species,
       filters.mainType,
-      filters.plantingYear,
+      filters.plantingYearFrom,
+      filters.plantingYearTo,
       filters.sizeClass,
     ],
   )

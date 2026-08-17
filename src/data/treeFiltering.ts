@@ -10,7 +10,8 @@ export interface TreeFilters {
   genus: string
   species: string
   mainType: string
-  plantingYear: number | null
+  plantingYearFrom: number | null
+  plantingYearTo: number | null
   sizeClass: string
 }
 
@@ -18,7 +19,6 @@ export interface TreeFilterOptions {
   genera: string[]
   species: string[]
   mainTypes: string[]
-  plantingYears: number[]
   sizeClasses: string[]
 }
 
@@ -33,7 +33,8 @@ export const EMPTY_TREE_FILTERS: TreeFilters = {
   genus: '',
   species: '',
   mainType: '',
-  plantingYear: null,
+  plantingYearFrom: null,
+  plantingYearTo: null,
   sizeClass: '',
 }
 
@@ -72,11 +73,45 @@ export function buildTreeSearchIndex(
   }))
 }
 
+export function hasInvalidPlantingYearRange(
+  filters: Pick<TreeFilters, 'plantingYearFrom' | 'plantingYearTo'>,
+): boolean {
+  return (
+    filters.plantingYearFrom !== null &&
+    filters.plantingYearTo !== null &&
+    filters.plantingYearFrom > filters.plantingYearTo
+  )
+}
+
+function matchesPlantingYear(
+  plantingYear: number | null,
+  filters: Pick<TreeFilters, 'plantingYearFrom' | 'plantingYearTo'>,
+): boolean {
+  const hasBound = filters.plantingYearFrom !== null || filters.plantingYearTo !== null
+
+  if (!hasBound) {
+    return true
+  }
+
+  if (plantingYear === null) {
+    return false
+  }
+
+  return (
+    (filters.plantingYearFrom === null || plantingYear >= filters.plantingYearFrom) &&
+    (filters.plantingYearTo === null || plantingYear <= filters.plantingYearTo)
+  )
+}
+
 export function filterTrees(
   trees: readonly HelsinkiTreeFeature[],
   filters: TreeFilters,
   searchIndex: readonly SearchableTree[] = buildTreeSearchIndex(trees),
 ): HelsinkiTreeFeature[] {
+  if (hasInvalidPlantingYearRange(filters)) {
+    return []
+  }
+
   const searchQuery = normalized(filters.search)
 
   return searchIndex
@@ -93,7 +128,7 @@ export function filterTrees(
         (!filters.genus || properties.suku === filters.genus) &&
         (!filters.species || properties.laji === filters.species) &&
         (!filters.mainType || properties.paatyyppi === filters.mainType) &&
-        (filters.plantingYear === null || properties.istutusvuosi === filters.plantingYear) &&
+        matchesPlantingYear(properties.istutusvuosi, filters) &&
         (!filters.sizeClass || properties.kokoluokka === filters.sizeClass)
       )
     })
@@ -116,19 +151,10 @@ export function buildTreeFilterOptions(
     ? categoryTrees.filter((tree) => tree.properties.suku === selectedGenus)
     : categoryTrees
 
-  const plantingYears = [
-    ...new Set(
-      categoryTrees
-        .map((tree) => tree.properties.istutusvuosi)
-        .filter((value): value is number => value !== null),
-    ),
-  ].sort((left, right) => right - left)
-
   return {
     genera: uniqueStrings(categoryTrees.map((tree) => tree.properties.suku)),
     species: uniqueStrings(speciesTrees.map((tree) => tree.properties.laji)),
     mainTypes: uniqueStrings(categoryTrees.map((tree) => tree.properties.paatyyppi)),
-    plantingYears,
     sizeClasses: uniqueStrings(categoryTrees.map((tree) => tree.properties.kokoluokka)),
   }
 }
@@ -140,7 +166,8 @@ export function hasActiveTreeFilters(filters: TreeFilters): boolean {
     Boolean(filters.genus) ||
     Boolean(filters.species) ||
     Boolean(filters.mainType) ||
-    filters.plantingYear !== null ||
+    filters.plantingYearFrom !== null ||
+    filters.plantingYearTo !== null ||
     Boolean(filters.sizeClass)
   )
 }

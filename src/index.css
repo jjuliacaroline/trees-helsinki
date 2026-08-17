@@ -58,7 +58,8 @@ summary {
 
 .tree-filter-panel label > span,
 .tree-filter-panel__search > span,
-.tree-filter-panel__fruit > span {
+.tree-filter-panel__fruit > span,
+.tree-filter-panel__year-range legend {
   font-size: 0.85rem;
   font-weight: 600;
 }
@@ -72,6 +73,10 @@ summary {
   border-radius: 8px;
   background: #fff;
   color: #111;
+}
+
+.tree-filter-panel input[aria-invalid="true"] {
+  border-color: #a33;
 }
 
 .tree-filter-panel__fruit {
@@ -106,6 +111,32 @@ summary {
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-top: 12px;
+}
+
+.tree-filter-panel__year-range {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.tree-filter-panel__year-range legend {
+  margin-bottom: 6px;
+  padding: 0;
+}
+
+.tree-filter-panel__year-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.tree-filter-panel__validation {
+  margin: 6px 0 0;
+  color: #8a2525;
+  font-size: 0.8rem;
+  line-height: 1.35;
 }
 
 .tree-filter-panel__reset {
@@ -258,6 +289,10 @@ summary {
 
   .tree-filter-panel__fields {
     grid-template-columns: 1fr;
+  }
+
+  .tree-filter-panel__year-inputs {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .tree-details {

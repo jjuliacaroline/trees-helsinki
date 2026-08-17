@@ -1,6 +1,7 @@
 import { FRUIT_CATEGORY_OPTIONS, type FruitCategoryFilter } from '../data/treeClassifications'
 import {
   hasActiveTreeFilters,
+  hasInvalidPlantingYearRange,
   type TreeFilterOptions,
   type TreeFilters,
 } from '../data/treeFiltering'
@@ -35,7 +36,8 @@ export function TreeFilterPanel({
       genus: '',
       species: '',
       mainType: '',
-      plantingYear: null,
+      plantingYearFrom: null,
+      plantingYearTo: null,
       sizeClass: '',
     })
   }
@@ -44,14 +46,18 @@ export function TreeFilterPanel({
     onChange({ ...filters, genus, species: '' })
   }
 
+  const parseOptionalYear = (value: string): number | null => (value === '' ? null : Number(value))
+  const invalidPlantingYearRange = hasInvalidPlantingYearRange(filters)
+  const plantingYearErrorId = 'planting-year-range-error'
+
   const activeFilterCount = [
     filters.fruitCategory,
     filters.genus,
     filters.species,
     filters.mainType,
-    filters.plantingYear,
+    filters.plantingYearFrom !== null || filters.plantingYearTo !== null ? 'planting-year' : '',
     filters.sizeClass,
-  ].filter((value) => value !== '' && value !== null).length
+  ].filter((value) => value !== '').length
 
   return (
     <section className="tree-filter-panel" aria-label="Puiden haku ja suodatus">
@@ -117,18 +123,40 @@ export function TreeFilterPanel({
             </select>
           </label>
 
-          <label>
-            <span>Istutusvuosi</span>
-            <select
-              value={filters.plantingYear ?? ''}
-              onChange={(event) => update('plantingYear', event.target.value ? Number(event.target.value) : null)}
-            >
-              <option value="">Kaikki vuodet</option>
-              {options.plantingYears.map((value) => (
-                <option key={value} value={value}>{value}</option>
-              ))}
-            </select>
-          </label>
+          <fieldset className="tree-filter-panel__year-range">
+            <legend>Istutusvuosi</legend>
+            <div className="tree-filter-panel__year-inputs">
+              <label>
+                <span>Alkaen</span>
+                <input
+                  type="number"
+                  step="1"
+                  inputMode="numeric"
+                  value={filters.plantingYearFrom ?? ''}
+                  onChange={(event) => update('plantingYearFrom', parseOptionalYear(event.target.value))}
+                  aria-invalid={invalidPlantingYearRange}
+                  aria-describedby={invalidPlantingYearRange ? plantingYearErrorId : undefined}
+                />
+              </label>
+              <label>
+                <span>Asti</span>
+                <input
+                  type="number"
+                  step="1"
+                  inputMode="numeric"
+                  value={filters.plantingYearTo ?? ''}
+                  onChange={(event) => update('plantingYearTo', parseOptionalYear(event.target.value))}
+                  aria-invalid={invalidPlantingYearRange}
+                  aria-describedby={invalidPlantingYearRange ? plantingYearErrorId : undefined}
+                />
+              </label>
+            </div>
+            {invalidPlantingYearRange ? (
+              <p id={plantingYearErrorId} className="tree-filter-panel__validation" role="status">
+                Alkuvuosi ei voi olla loppuvuotta suurempi.
+              </p>
+            ) : null}
+          </fieldset>
 
           <label>
             <span>Kokoluokka</span>

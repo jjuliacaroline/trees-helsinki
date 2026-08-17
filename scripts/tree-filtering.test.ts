@@ -5,6 +5,7 @@ import {
   buildTreeSearchIndex,
   EMPTY_TREE_FILTERS,
   filterTrees,
+  hasInvalidPlantingYearRange,
   type TreeFilters,
 } from '../src/data/treeFiltering'
 import type { HelsinkiTreeFeature } from '../src/data/treeRegistry'
@@ -62,6 +63,7 @@ const trees = [
   tree(106, { suku: 'Pyrus', laji: 'communis', paatyyppi: 'Puisto', istutusvuosi: 2012 }),
   tree(107, { suku: 'Prunus', laji: 'avium', paatyyppi: 'Katu', istutusvuosi: 2015 }),
   tree(108, { suku: 'Prunus', laji: 'sp.', paatyyppi: 'Puisto', istutusvuosi: 2018 }),
+  tree(109),
 ]
 const searchIndex = buildTreeSearchIndex(trees)
 
@@ -107,7 +109,7 @@ test('indexed search preserves case-insensitive and whitespace matching', () => 
 test('missing optional values do not break search and non-mappable trees stay off the map', () => {
   assert.deepEqual(
     filterTrees(trees, EMPTY_TREE_FILTERS, searchIndex).map((item) => item.properties.id),
-    [101, 102, 103, 105, 106, 107, 108],
+    [101, 102, 103, 105, 106, 107, 108, 109],
   )
   assert.deepEqual(filterTrees(trees, withFilters({ search: 'not-present' }), searchIndex), [])
 })
@@ -121,13 +123,61 @@ test('active filter groups use intersection semantics', () => {
       genus: 'Prunus',
       species: 'domestica',
       mainType: 'Puisto',
-      plantingYear: 2001,
+      plantingYearFrom: 2001,
+      plantingYearTo: 2001,
       sizeClass: '10-20',
     }),
     searchIndex,
   )
 
   assert.deepEqual(result.map((item) => item.properties.id), [101])
+})
+
+test('planting year lower bound is inclusive and excludes missing years', () => {
+  assert.deepEqual(
+    filterTrees(trees, withFilters({ plantingYearFrom: 2010 }), searchIndex).map(
+      (item) => item.properties.id,
+    ),
+    [105, 106, 107, 108],
+  )
+})
+
+test('planting year upper bound is inclusive and excludes missing years', () => {
+  assert.deepEqual(
+    filterTrees(trees, withFilters({ plantingYearTo: 2005 }), searchIndex).map(
+      (item) => item.properties.id,
+    ),
+    [101, 102, 103],
+  )
+})
+
+test('planting year range includes both boundary years', () => {
+  assert.deepEqual(
+    filterTrees(
+      trees,
+      withFilters({ plantingYearFrom: 2001, plantingYearTo: 2005 }),
+      searchIndex,
+    ).map((item) => item.properties.id),
+    [101, 103],
+  )
+})
+
+test('invalid planting year range is reported and produces no misleading results', () => {
+  const filters = withFilters({ plantingYearFrom: 2024, plantingYearTo: 2020 })
+
+  assert.equal(hasInvalidPlantingYearRange(filters), true)
+  assert.deepEqual(filterTrees(trees, filters, searchIndex), [])
+})
+
+test('planting year range intersects with another filter', () => {
+  assert.deepEqual(
+    filterTrees(
+      trees,
+      withFilters({ plantingYearFrom: 2000, plantingYearTo: 2010, mainType: 'Katu' }),
+      searchIndex,
+    ).map((item) => item.properties.id),
+    [105],
+  )
 })
 
 test('fruit categories filter supported species without guessing ambiguous records', () => {
@@ -150,7 +200,6 @@ test('filter options come from mappable source data and species narrow by genus'
   assert.deepEqual(allOptions.genera, ['Acer', 'Malus', 'Prunus', 'Pyrus'])
   assert.deepEqual(allOptions.species, ['avium', 'cerasus', 'communis', 'domestica', 'platanoides', 'sp.'])
   assert.deepEqual(allOptions.mainTypes, ['Katu', 'Puisto'])
-  assert.deepEqual(allOptions.plantingYears, [2018, 2015, 2012, 2010, 2005, 2001, 1998])
   assert.deepEqual(allOptions.sizeClasses, ['10-20', '20-30'])
 
   const prunusOptions = buildTreeFilterOptions(trees, 'Prunus')
@@ -162,7 +211,6 @@ test('fruit category narrows source-backed filter options before genus cascading
   assert.deepEqual(plumOptions.genera, ['Prunus'])
   assert.deepEqual(plumOptions.species, ['domestica'])
   assert.deepEqual(plumOptions.mainTypes, ['Puisto'])
-  assert.deepEqual(plumOptions.plantingYears, [2001])
   assert.deepEqual(plumOptions.sizeClasses, ['10-20'])
 
   const cherryOptions = buildTreeFilterOptions(trees, 'Prunus', 'cherry')
