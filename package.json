@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "check": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
-    "test": "tsx --test scripts/tree-registry.test.ts",
+    "test": "tsx --test scripts/*.test.ts",
     "data:fetch": "tsx scripts/fetch-trees.ts"
   },
   "dependencies": {

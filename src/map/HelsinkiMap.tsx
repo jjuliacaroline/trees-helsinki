@@ -1,9 +1,21 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Map, NavigationControl, setWorkerUrl, type GeoJSONSource } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
-import { normalizeTreeFeature, type HelsinkiTreeFeature } from '../data/treeRegistry'
+import {
+  buildTreeFilterOptions,
+  buildTreeSearchIndex,
+  EMPTY_TREE_FILTERS,
+  filterTrees,
+  type TreeFilters,
+} from '../data/treeFiltering'
+import {
+  normalizeTreeFeatureCollection,
+  type HelsinkiTreeFeature,
+} from '../data/treeRegistry'
 import { TreeDetailsPanel } from './TreeDetailsPanel'
+import { TreeFilterPanel } from './TreeFilterPanel'
+import { projectTreesForMap } from './treeMapData'
 
 setWorkerUrl(maplibreWorkerUrl)
 
@@ -17,12 +29,103 @@ const TREE_LAYER_ID = 'tree-points'
 
 export function HelsinkiMap() {
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<Map | null>(null)
+  const [mapReady, setMapReady] = useState(false)
+  const [allTrees, setAllTrees] = useState<HelsinkiTreeFeature[]>([])
+  const [filters, setFilters] = useState<TreeFilters>({ ...EMPTY_TREE_FILTERS })
   const [selectedTree, setSelectedTree] = useState<HelsinkiTreeFeature | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  const [effectiveSearch, setEffectiveSearch] = useState(filters.search)
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setEffectiveSearch(filters.search)
+    }, 200)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [filters.search])
+
+  const effectiveFilters = useMemo(
+    () => ({
+      search: effectiveSearch,
+      genus: filters.genus,
+      species: filters.species,
+      mainType: filters.mainType,
+      plantingYear: filters.plantingYear,
+      sizeClass: filters.sizeClass,
+    }),
+    [
+      effectiveSearch,
+      filters.genus,
+      filters.species,
+      filters.mainType,
+      filters.plantingYear,
+      filters.sizeClass,
+    ],
+  )
+  const treeSearchIndex = useMemo(() => buildTreeSearchIndex(allTrees), [allTrees])
+  const filteredTrees = useMemo(
+    () => filterTrees(allTrees, effectiveFilters, treeSearchIndex),
+    [allTrees, effectiveFilters, treeSearchIndex],
+  )
+  const mapFeatures = useMemo(() => projectTreesForMap(filteredTrees), [filteredTrees])
+  const treesById = useMemo(
+    () => new globalThis.Map(allTrees.map((tree) => [tree.properties.id, tree] as const)),
+    [allTrees],
+  )
+  const treesByIdRef = useRef(treesById)
+
+  useEffect(() => {
+    treesByIdRef.current = treesById
+  }, [treesById])
+
+  const filterOptions = useMemo(
+    () => buildTreeFilterOptions(allTrees, filters.genus),
+    [allTrees, filters.genus],
+  )
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    async function loadTrees() {
+      try {
+        setLoading(true)
+        setLoadError(null)
+
+        const response = await fetch(TREE_DATA_URL, { signal: controller.signal })
+        if (!response.ok) {
+          throw new Error(`tree data request failed with status ${response.status}`)
+        }
+
+        const collection = normalizeTreeFeatureCollection(await response.json())
+        setAllTrees(collection.features)
+      } catch (error) {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return
+        }
+
+        console.error('Could not load tree registry data', error)
+        setLoadError('Puutietoja ei voitu ladata.')
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void loadTrees()
+
+    return () => controller.abort()
+  }, [])
 
   useEffect(() => {
     if (!containerRef.current) {
       return
     }
+
+    setMapReady(false)
 
     const map = new Map({
       container: containerRef.current,
@@ -30,13 +133,14 @@ export function HelsinkiMap() {
       center: HELSINKI_CENTER,
       zoom: 11.5,
     })
+    mapRef.current = map
 
     map.addControl(new NavigationControl(), 'top-right')
 
     map.on('load', () => {
       map.addSource(TREE_SOURCE_ID, {
         type: 'geojson',
-        data: TREE_DATA_URL,
+        data: { type: 'FeatureCollection', features: [] },
         cluster: true,
         clusterMaxZoom: 14,
         clusterRadius: 50,
@@ -89,6 +193,8 @@ export function HelsinkiMap() {
           'circle-stroke-width': 1.5,
         },
       })
+
+      setMapReady(true)
     })
 
     map.on('click', CLUSTER_LAYER_ID, async (event) => {
@@ -117,14 +223,13 @@ export function HelsinkiMap() {
 
     map.on('click', TREE_LAYER_ID, (event) => {
       const feature = event.features?.[0]
-      if (!feature) {
+      if (!feature || typeof feature.id !== 'number') {
         return
       }
 
-      try {
-        setSelectedTree(normalizeTreeFeature(feature))
-      } catch (error) {
-        console.error('Could not read selected tree feature', error)
+      const tree = treesByIdRef.current.get(feature.id)
+      if (tree) {
+        setSelectedTree(tree)
       }
     })
 
@@ -141,13 +246,50 @@ export function HelsinkiMap() {
     map.on('mouseleave', TREE_LAYER_ID, resetPointer)
 
     return () => {
+      mapRef.current = null
       map.remove()
     }
   }, [])
 
+  useEffect(() => {
+    if (!mapReady) {
+      return
+    }
+
+    const source = mapRef.current?.getSource(TREE_SOURCE_ID) as GeoJSONSource | undefined
+    if (!source) {
+      return
+    }
+
+    const data = {
+      type: 'FeatureCollection',
+      features: mapFeatures,
+    } as Parameters<GeoJSONSource['setData']>[0]
+
+    source.setData(data)
+  }, [mapFeatures, mapReady])
+
+  useEffect(() => {
+    if (
+      selectedTree &&
+      !filteredTrees.some((tree) => tree.properties.id === selectedTree.properties.id)
+    ) {
+      setSelectedTree(null)
+    }
+  }, [filteredTrees, selectedTree])
+
   return (
     <div className="map-shell">
       <div ref={containerRef} className="map" aria-label="Interactive map of Helsinki trees" />
+      <TreeFilterPanel
+        filters={filters}
+        options={filterOptions}
+        resultCount={filteredTrees.length}
+        loading={loading}
+        error={loadError}
+        onChange={setFilters}
+        onReset={() => setFilters({ ...EMPTY_TREE_FILTERS })}
+      />
       {selectedTree ? (
         <TreeDetailsPanel tree={selectedTree} onClose={() => setSelectedTree(null)} />
       ) : null}
