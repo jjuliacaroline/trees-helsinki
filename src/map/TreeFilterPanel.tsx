@@ -1,3 +1,4 @@
+import { FRUIT_CATEGORY_OPTIONS, type FruitCategoryFilter } from '../data/treeClassifications'
 import {
   hasActiveTreeFilters,
   type TreeFilterOptions,
@@ -27,11 +28,24 @@ export function TreeFilterPanel({
     onChange({ ...filters, [key]: value })
   }
 
+  const updateFruitCategory = (fruitCategory: FruitCategoryFilter) => {
+    onChange({
+      ...filters,
+      fruitCategory,
+      genus: '',
+      species: '',
+      mainType: '',
+      plantingYear: null,
+      sizeClass: '',
+    })
+  }
+
   const updateGenus = (genus: string) => {
     onChange({ ...filters, genus, species: '' })
   }
 
   const activeFilterCount = [
+    filters.fruitCategory,
     filters.genus,
     filters.species,
     filters.mainType,
@@ -49,6 +63,20 @@ export function TreeFilterPanel({
           onChange={(event) => update('search', event.target.value)}
           placeholder="Esim. luumu, Prunus tai puisto"
         />
+      </label>
+
+      <label className="tree-filter-panel__fruit">
+        <span>Hedelmäpuut</span>
+        <select
+          value={filters.fruitCategory}
+          onChange={(event) => updateFruitCategory(event.target.value as FruitCategoryFilter)}
+        >
+          <option value="">Kaikki puut</option>
+          {FRUIT_CATEGORY_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>{option.label}</option>
+          ))}
+        </select>
+        <small>Syötävyys on Trees Helsingin oma luokitus puun suvun ja lajin perusteella.</small>
       </label>
 
       <p className="tree-filter-panel__status" aria-live="polite">
