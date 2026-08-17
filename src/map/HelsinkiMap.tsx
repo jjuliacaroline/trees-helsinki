@@ -97,8 +97,12 @@ export function HelsinkiMap() {
   )
   const mapFeatures = useMemo(() => projectTreesForMap(filteredTrees), [filteredTrees])
   const highlightFeatures = useMemo(
-    () => projectTreeHighlightsForMap(filteredTrees, selectedTree?.properties.id ?? null),
-    [filteredTrees, selectedTree],
+    () =>
+      projectTreeHighlightsForMap(
+        filters.fruitCategory ? filteredTrees : selectedTree ? [selectedTree] : [],
+        selectedTree?.properties.id ?? null,
+      ),
+    [filteredTrees, filters.fruitCategory, selectedTree],
   )
   const treesById = useMemo(
     () => new globalThis.Map(allTrees.map((tree) => [tree.properties.id, tree] as const)),
