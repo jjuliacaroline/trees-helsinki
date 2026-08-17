@@ -4,6 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import {
   buildTreeFilterOptions,
+  buildTreeSearchIndex,
   EMPTY_TREE_FILTERS,
   filterTrees,
   type TreeFilters,
@@ -64,7 +65,11 @@ export function HelsinkiMap() {
       filters.sizeClass,
     ],
   )
-  const filteredTrees = useMemo(() => filterTrees(allTrees, effectiveFilters), [allTrees, effectiveFilters])
+  const treeSearchIndex = useMemo(() => buildTreeSearchIndex(allTrees), [allTrees])
+  const filteredTrees = useMemo(
+    () => filterTrees(allTrees, effectiveFilters, treeSearchIndex),
+    [allTrees, effectiveFilters, treeSearchIndex],
+  )
   const mapFeatures = useMemo(() => projectTreesForMap(filteredTrees), [filteredTrees])
   const treesById = useMemo(
     () => new globalThis.Map(allTrees.map((tree) => [tree.properties.id, tree] as const)),
@@ -256,10 +261,12 @@ export function HelsinkiMap() {
       return
     }
 
-    source.setData({
+    const data = {
       type: 'FeatureCollection',
       features: mapFeatures,
-    } as Parameters<GeoJSONSource['setData']>[0])
+    } as Parameters<GeoJSONSource['setData']>[0]
+
+    source.setData(data)
   }, [mapFeatures, mapReady])
 
   useEffect(() => {

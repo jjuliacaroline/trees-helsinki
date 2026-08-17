@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   buildTreeFilterOptions,
+  buildTreeSearchIndex,
   EMPTY_TREE_FILTERS,
   filterTrees,
   type TreeFilters,
@@ -58,23 +59,51 @@ const trees = [
   tree(103, { suku: 'Prunus', laji: 'cerasus', paatyyppi: 'Puisto' }),
   tree(104, { suomenknimi: 'Geometriaton puu', suku: 'Testus' }, null),
 ]
+const searchIndex = buildTreeSearchIndex(trees)
 
 function withFilters(overrides: Partial<TreeFilters>): TreeFilters {
   return { ...EMPTY_TREE_FILTERS, ...overrides }
 }
 
 test('search matches source-backed names, taxonomy, location, identifiers, and id', () => {
-  for (const query of ['luumu', 'domestica', 'Prunus domestica', 'Kaivopuisto', 'P-101', '101']) {
-    assert.deepEqual(filterTrees(trees, withFilters({ search: query })).map((item) => item.properties.id), [101])
+  for (const query of [
+    'luumu',
+    'prunus',
+    'domestica',
+    'Prunus domestica',
+    'Kaivopuisto',
+    'P-101',
+    '101',
+  ]) {
+    assert.deepEqual(
+      filterTrees(trees, withFilters({ search: query }), searchIndex).map((item) => item.properties.id),
+      query === 'prunus' ? [101, 103] : [101],
+    )
   }
 
-  assert.deepEqual(filterTrees(trees, withFilters({ search: 'Prunus' })).map((item) => item.properties.id), [101, 103])
-  assert.deepEqual(filterTrees(trees, withFilters({ search: 'mannerheimintie' })).map((item) => item.properties.id), [102])
+  assert.deepEqual(
+    filterTrees(trees, withFilters({ search: 'mannerheimintie' }), searchIndex).map(
+      (item) => item.properties.id,
+    ),
+    [102],
+  )
+})
+
+test('indexed search preserves case-insensitive and whitespace matching', () => {
+  for (const query of ['  LUUMU  ', '  prunus domestica  ', '  mannerheimintie  ']) {
+    assert.deepEqual(
+      filterTrees(trees, withFilters({ search: query }), searchIndex).map((item) => item.properties.id),
+      query.includes('manner') ? [102] : [101],
+    )
+  }
 })
 
 test('missing optional values do not break search and non-mappable trees stay off the map', () => {
-  assert.deepEqual(filterTrees(trees, EMPTY_TREE_FILTERS).map((item) => item.properties.id), [101, 102, 103])
-  assert.deepEqual(filterTrees(trees, withFilters({ search: 'not-present' })), [])
+  assert.deepEqual(
+    filterTrees(trees, EMPTY_TREE_FILTERS, searchIndex).map((item) => item.properties.id),
+    [101, 102, 103],
+  )
+  assert.deepEqual(filterTrees(trees, withFilters({ search: 'not-present' }), searchIndex), [])
 })
 
 test('active filter groups use intersection semantics', () => {
@@ -88,6 +117,7 @@ test('active filter groups use intersection semantics', () => {
       plantingYear: 2001,
       sizeClass: '10-20',
     }),
+    searchIndex,
   )
 
   assert.deepEqual(result.map((item) => item.properties.id), [101])

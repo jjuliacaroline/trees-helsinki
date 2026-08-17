@@ -17,6 +17,11 @@ export interface TreeFilterOptions {
   sizeClasses: string[]
 }
 
+export interface SearchableTree {
+  tree: HelsinkiTreeFeature
+  searchText: string
+}
+
 export const EMPTY_TREE_FILTERS: TreeFilters = {
   search: '',
   genus: '',
@@ -32,11 +37,7 @@ function normalized(value: string): string {
   return value.trim().toLocaleLowerCase('fi-FI')
 }
 
-function matchesSearch(tree: HelsinkiTreeFeature, query: string): boolean {
-  if (!query) {
-    return true
-  }
-
+function buildSearchText(tree: HelsinkiTreeFeature): string {
   const { properties } = tree
   const scientificName = [properties.suku, properties.laji].filter(Boolean).join(' ')
   const values = [
@@ -50,31 +51,46 @@ function matchesSearch(tree: HelsinkiTreeFeature, query: string): boolean {
     String(properties.id),
   ]
 
-  return values.some((value) => value !== null && normalized(value).includes(query))
+  return values
+    .filter((value): value is string => value !== null)
+    .map(normalized)
+    .join('\u0000')
+}
+
+export function buildTreeSearchIndex(
+  trees: readonly HelsinkiTreeFeature[],
+): SearchableTree[] {
+  return trees.map((tree) => ({
+    tree,
+    searchText: buildSearchText(tree),
+  }))
 }
 
 export function filterTrees(
   trees: readonly HelsinkiTreeFeature[],
   filters: TreeFilters,
+  searchIndex: readonly SearchableTree[] = buildTreeSearchIndex(trees),
 ): HelsinkiTreeFeature[] {
   const searchQuery = normalized(filters.search)
 
-  return trees.filter((tree) => {
-    if (!tree.geometry) {
-      return false
-    }
+  return searchIndex
+    .filter(({ tree, searchText }) => {
+      if (!tree.geometry) {
+        return false
+      }
 
-    const { properties } = tree
+      const { properties } = tree
 
-    return (
-      matchesSearch(tree, searchQuery) &&
-      (!filters.genus || properties.suku === filters.genus) &&
-      (!filters.species || properties.laji === filters.species) &&
-      (!filters.mainType || properties.paatyyppi === filters.mainType) &&
-      (filters.plantingYear === null || properties.istutusvuosi === filters.plantingYear) &&
-      (!filters.sizeClass || properties.kokoluokka === filters.sizeClass)
-    )
-  })
+      return (
+        (!searchQuery || searchText.includes(searchQuery)) &&
+        (!filters.genus || properties.suku === filters.genus) &&
+        (!filters.species || properties.laji === filters.species) &&
+        (!filters.mainType || properties.paatyyppi === filters.mainType) &&
+        (filters.plantingYear === null || properties.istutusvuosi === filters.plantingYear) &&
+        (!filters.sizeClass || properties.kokoluokka === filters.sizeClass)
+      )
+    })
+    .map(({ tree }) => tree)
 }
 
 function uniqueStrings(values: Array<string | null>): string[] {
