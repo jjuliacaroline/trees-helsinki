@@ -5,6 +5,7 @@ import {
   type TreeFilterOptions,
   type TreeFilters,
 } from '../data/treeFiltering'
+import { TreeMapLegend } from './TreeMapLegend'
 
 interface TreeFilterPanelProps {
   filters: TreeFilters
@@ -88,6 +89,8 @@ export function TreeFilterPanel({
       <p className="tree-filter-panel__status" aria-live="polite">
         {loading ? 'Ladataan puutietoja…' : error ?? `${resultCount.toLocaleString('fi-FI')} puuta kartalla`}
       </p>
+
+      <TreeMapLegend />
 
       <details className="tree-filter-panel__filters">
         <summary>Suodattimet{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}</summary>

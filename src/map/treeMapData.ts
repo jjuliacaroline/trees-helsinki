@@ -1,10 +1,40 @@
+import { classifyTree } from '../data/treeClassifications'
 import type { GeoJsonPoint, HelsinkiTreeFeature } from '../data/treeRegistry'
+import type { TreeMapCategory } from './treeMarkerStyles'
 
 export interface TreeMapFeature {
   type: 'Feature'
   id: number
-  properties: Record<string, never>
+  properties: {
+    category: TreeMapCategory
+  }
   geometry: GeoJsonPoint
+}
+
+export interface TreeHighlightFeature {
+  type: 'Feature'
+  id: number
+  properties: {
+    category: TreeMapCategory
+    selected: boolean
+  }
+  geometry: GeoJsonPoint
+}
+
+export function getTreeMapCategory(tree: HelsinkiTreeFeature): TreeMapCategory {
+  const classification = classifyTree(tree)
+
+  switch (classification?.id) {
+    case 'apple':
+    case 'pear':
+    case 'plum':
+      return classification.id
+    case 'sweet-cherry':
+    case 'sour-cherry':
+      return 'cherry'
+    default:
+      return 'other'
+  }
 }
 
 export function projectTreesForMap(
@@ -19,7 +49,36 @@ export function projectTreesForMap(
       {
         type: 'Feature',
         id: tree.properties.id,
-        properties: {},
+        properties: {
+          category: getTreeMapCategory(tree),
+        },
+        geometry: tree.geometry,
+      },
+    ]
+  })
+}
+
+export function projectTreeHighlightsForMap(
+  trees: readonly HelsinkiTreeFeature[],
+  selectedTreeId: number | null,
+): TreeHighlightFeature[] {
+  return trees.flatMap((tree) => {
+    if (!tree.geometry) {
+      return []
+    }
+
+    const category = getTreeMapCategory(tree)
+    const selected = tree.properties.id === selectedTreeId
+
+    if (category === 'other' && !selected) {
+      return []
+    }
+
+    return [
+      {
+        type: 'Feature',
+        id: tree.properties.id,
+        properties: { category, selected },
         geometry: tree.geometry,
       },
     ]
