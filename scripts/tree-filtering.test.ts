@@ -70,18 +70,20 @@ function withFilters(overrides: Partial<TreeFilters>): TreeFilters {
 }
 
 test('search matches source-backed names, taxonomy, location, identifiers, and id', () => {
-  for (const query of [
-    'luumu',
-    'prunus',
-    'domestica',
-    'Prunus domestica',
-    'Kaivopuisto',
-    'P-101',
-    '101',
-  ]) {
+  const expectedIdsByQuery: Record<string, number[]> = {
+    luumu: [101],
+    prunus: [101, 103, 107, 108],
+    domestica: [101, 105],
+    'Prunus domestica': [101],
+    Kaivopuisto: [101],
+    'P-101': [101],
+    '101': [101],
+  }
+
+  for (const query of Object.keys(expectedIdsByQuery)) {
     assert.deepEqual(
       filterTrees(trees, withFilters({ search: query }), searchIndex).map((item) => item.properties.id),
-      query === 'prunus' ? [101, 103, 107, 108] : [101],
+      expectedIdsByQuery[query],
     )
   }
 
