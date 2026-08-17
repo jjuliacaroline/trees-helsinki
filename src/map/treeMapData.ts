@@ -62,23 +62,22 @@ export function projectTreeHighlightsForMap(
   trees: readonly HelsinkiTreeFeature[],
   selectedTreeId: number | null,
 ): TreeHighlightFeature[] {
+  if (selectedTreeId === null) {
+    return []
+  }
+
   return trees.flatMap((tree) => {
-    if (!tree.geometry) {
+    if (!tree.geometry || tree.properties.id !== selectedTreeId) {
       return []
     }
 
     const category = getTreeMapCategory(tree)
-    const selected = tree.properties.id === selectedTreeId
-
-    if (category === 'other' && !selected) {
-      return []
-    }
 
     return [
       {
         type: 'Feature',
         id: tree.properties.id,
-        properties: { category, selected },
+        properties: { category, selected: true },
         geometry: tree.geometry,
       },
     ]
