@@ -15,7 +15,16 @@ import {
 } from '../data/treeRegistry'
 import { TreeDetailsPanel } from './TreeDetailsPanel'
 import { TreeFilterPanel } from './TreeFilterPanel'
-import { projectTreesForMap } from './treeMapData'
+import {
+  projectTreeHighlightsForMap,
+  projectTreesForMap,
+} from './treeMapData'
+import {
+  getTreeClusterColorExpression,
+  TREE_CATEGORY_COLOR_EXPRESSION,
+  TREE_CLUSTER_PROPERTIES,
+  TREE_DEFAULT_CLUSTER_COLOR_EXPRESSION,
+} from './treeMarkerStyles'
 
 setWorkerUrl(maplibreWorkerUrl)
 
@@ -23,8 +32,10 @@ const HELSINKI_CENTER: [number, number] = [24.9384, 60.1699]
 const OPENFREEMAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty'
 const TREE_DATA_URL = `${import.meta.env.BASE_URL}data/trees.geojson`
 const TREE_SOURCE_ID = 'trees'
+const TREE_HIGHLIGHT_SOURCE_ID = 'tree-highlights'
 const CLUSTER_LAYER_ID = 'tree-clusters'
 const CLUSTER_COUNT_LAYER_ID = 'tree-cluster-count'
+const SELECTED_TREE_LAYER_ID = 'selected-tree-highlight'
 const TREE_LAYER_ID = 'tree-points'
 
 export function HelsinkiMap() {
@@ -75,6 +86,22 @@ export function HelsinkiMap() {
     [allTrees, effectiveFilters, treeSearchIndex],
   )
   const mapFeatures = useMemo(() => projectTreesForMap(filteredTrees), [filteredTrees])
+  const visibleSelectedTree = useMemo(
+    () =>
+      selectedTree &&
+      filteredTrees.some((tree) => tree.properties.id === selectedTree.properties.id)
+        ? selectedTree
+        : null,
+    [filteredTrees, selectedTree],
+  )
+  const highlightFeatures = useMemo(
+    () =>
+      projectTreeHighlightsForMap(
+        visibleSelectedTree ? [visibleSelectedTree] : [],
+        visibleSelectedTree?.properties.id ?? null,
+      ),
+    [visibleSelectedTree],
+  )
   const treesById = useMemo(
     () => new globalThis.Map(allTrees.map((tree) => [tree.properties.id, tree] as const)),
     [allTrees],
@@ -148,6 +175,12 @@ export function HelsinkiMap() {
         cluster: true,
         clusterMaxZoom: 14,
         clusterRadius: 50,
+        clusterProperties: TREE_CLUSTER_PROPERTIES,
+      })
+
+      map.addSource(TREE_HIGHLIGHT_SOURCE_ID, {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
       })
 
       map.addLayer({
@@ -156,15 +189,7 @@ export function HelsinkiMap() {
         source: TREE_SOURCE_ID,
         filter: ['has', 'point_count'],
         paint: {
-          'circle-color': [
-            'step',
-            ['get', 'point_count'],
-            '#4f8f5b',
-            100,
-            '#337447',
-            750,
-            '#1f5d36',
-          ],
+          'circle-color': TREE_DEFAULT_CLUSTER_COLOR_EXPRESSION,
           'circle-radius': ['step', ['get', 'point_count'], 18, 100, 24, 750, 30],
           'circle-stroke-color': '#ffffff',
           'circle-stroke-width': 2,
@@ -191,10 +216,24 @@ export function HelsinkiMap() {
         source: TREE_SOURCE_ID,
         filter: ['!', ['has', 'point_count']],
         paint: {
-          'circle-color': '#2f7d4a',
-          'circle-radius': 5,
+          'circle-color': TREE_CATEGORY_COLOR_EXPRESSION,
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 14, 6, 18, 8],
           'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 1.5,
+          'circle-stroke-width': 2,
+        },
+      })
+
+      map.addLayer({
+        id: SELECTED_TREE_LAYER_ID,
+        type: 'circle',
+        source: TREE_HIGHLIGHT_SOURCE_ID,
+        filter: ['==', ['get', 'selected'], true],
+        paint: {
+          'circle-color': '#ffffff',
+          'circle-opacity': 0,
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 11, 18, 16],
+          'circle-stroke-color': '#1f2937',
+          'circle-stroke-width': 3.5,
         },
       })
 
@@ -225,16 +264,19 @@ export function HelsinkiMap() {
       })
     })
 
-    map.on('click', TREE_LAYER_ID, (event) => {
-      const feature = event.features?.[0]
-      if (!feature || typeof feature.id !== 'number') {
+    const selectTreeFromFeature = (featureId: string | number | undefined) => {
+      if (typeof featureId !== 'number') {
         return
       }
 
-      const tree = treesByIdRef.current.get(feature.id)
+      const tree = treesByIdRef.current.get(featureId)
       if (tree) {
         setSelectedTree(tree)
       }
+    }
+
+    map.on('click', TREE_LAYER_ID, (event) => {
+      selectTreeFromFeature(event.features?.[0]?.id)
     })
 
     const showPointer = () => {
@@ -272,6 +314,36 @@ export function HelsinkiMap() {
 
     source.setData(data)
   }, [mapFeatures, mapReady])
+
+  useEffect(() => {
+    if (!mapReady) {
+      return
+    }
+
+    const source = mapRef.current?.getSource(TREE_HIGHLIGHT_SOURCE_ID) as GeoJSONSource | undefined
+    if (!source) {
+      return
+    }
+
+    const data = {
+      type: 'FeatureCollection',
+      features: highlightFeatures,
+    } as Parameters<GeoJSONSource['setData']>[0]
+
+    source.setData(data)
+  }, [highlightFeatures, mapReady])
+
+  useEffect(() => {
+    if (!mapReady) {
+      return
+    }
+
+    mapRef.current?.setPaintProperty(
+      CLUSTER_LAYER_ID,
+      'circle-color',
+      getTreeClusterColorExpression(filters.fruitCategory),
+    )
+  }, [filters.fruitCategory, mapReady])
 
   useEffect(() => {
     if (

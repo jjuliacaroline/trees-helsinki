@@ -95,6 +95,59 @@ summary {
   font-size: 0.9rem;
 }
 
+.tree-map-legend {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #d9dde3;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.tree-map-legend__title {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.tree-map-legend__items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
+.tree-map-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #303640;
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.tree-map-legend__dot {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #1f2937;
+  border-radius: 50%;
+}
+
+.tree-map-legend__dot--other {
+  width: 10px;
+  height: 10px;
+  border-color: #fff;
+  box-shadow: 0 0 0 1px #374151;
+}
+
+.tree-map-legend__hint {
+  margin: 8px 0 0;
+  color: #666;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
 .tree-filter-panel__filters {
   margin-top: 14px;
   border-top: 1px solid #ddd;
@@ -293,6 +346,10 @@ summary {
 
   .tree-filter-panel__year-inputs {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .tree-map-legend__hint {
+    display: none;
   }
 
   .tree-details {

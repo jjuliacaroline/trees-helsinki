@@ -5,6 +5,7 @@ import {
   type TreeFilterOptions,
   type TreeFilters,
 } from '../data/treeFiltering'
+import { TreeMapLegend } from './TreeMapLegend'
 
 interface TreeFilterPanelProps {
   filters: TreeFilters
@@ -72,7 +73,7 @@ export function TreeFilterPanel({
       </label>
 
       <label className="tree-filter-panel__fruit">
-        <span>Hedelmäpuut</span>
+        <span>Näytä</span>
         <select
           value={filters.fruitCategory}
           onChange={(event) => updateFruitCategory(event.target.value as FruitCategoryFilter)}
@@ -82,12 +83,16 @@ export function TreeFilterPanel({
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
-        <small>Syötävyys on Trees Helsingin oma luokitus puun suvun ja lajin perusteella.</small>
+        {filters.fruitCategory ? (
+          <small>Syötävyys on Trees Helsingin oma luokitus puun suvun ja lajin perusteella.</small>
+        ) : null}
       </label>
 
       <p className="tree-filter-panel__status" aria-live="polite">
         {loading ? 'Ladataan puutietoja…' : error ?? `${resultCount.toLocaleString('fi-FI')} puuta kartalla`}
       </p>
+
+      {filters.fruitCategory === 'edible' ? <TreeMapLegend /> : null}
 
       <details className="tree-filter-panel__filters">
         <summary>Suodattimet{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}</summary>
