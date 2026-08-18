@@ -105,7 +105,7 @@ test('selecting a mapped plum opens its classified details', async ({ page }) =>
     }
 
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
-    await expect(details).toBeVisible()
+    await expect(details).toBeVisible({ timeout: 0 })
   }).toPass({ timeout: 5_000 })
 
   await expect(details.getByRole('heading', { name: 'Luumu' })).toBeVisible()
