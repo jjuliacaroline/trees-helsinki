@@ -1,8 +1,7 @@
-import type { ExpressionSpecification } from '@maplibre/maplibre-gl-style-spec'
+import type { ExpressionSpecification } from 'maplibre-gl'
 import type { FruitCategoryFilter } from '../data/treeClassifications'
 
 export type TreeMapCategory = 'apple' | 'pear' | 'plum' | 'cherry' | 'other'
-export type FruitClusterCategory = Exclude<TreeMapCategory, 'other'> | 'mixed'
 
 export interface TreeMarkerStyle {
   label: string
@@ -50,30 +49,6 @@ export const TREE_DEFAULT_CLUSTER_COLOR_EXPRESSION: ExpressionSpecification = [
   '#1f5d36',
 ]
 
-export interface FruitClusterComposition {
-  pointCount: number
-  appleCount: number
-  pearCount: number
-  plumCount: number
-  cherryCount: number
-}
-
-export function getFruitClusterCategory(
-  composition: FruitClusterComposition,
-): FruitClusterCategory {
-  const categories: Array<[FruitClusterCategory, number]> = [
-    ['apple', composition.appleCount],
-    ['pear', composition.pearCount],
-    ['plum', composition.plumCount],
-    ['cherry', composition.cherryCount],
-  ]
-  const matchingCategories = categories.filter(
-    ([, count]) => count === composition.pointCount,
-  )
-
-  return matchingCategories.length === 1 ? matchingCategories[0][0] : 'mixed'
-}
-
 export function getTreeClusterColorExpression(
   fruitCategory: FruitCategoryFilter,
 ): string | ExpressionSpecification {
@@ -101,10 +76,14 @@ export function getTreeClusterColorExpression(
   }
 }
 
-export const TREE_MARKER_LEGEND_CATEGORIES: readonly TreeMapCategory[] = [
-  'apple',
-  'pear',
-  'plum',
-  'cherry',
-  'other',
-]
+export const TREE_EDIBLE_FRUIT_LEGEND_ITEMS = [
+  { key: 'apple', ...TREE_MARKER_STYLES.apple },
+  { key: 'pear', ...TREE_MARKER_STYLES.pear },
+  { key: 'plum', ...TREE_MARKER_STYLES.plum },
+  { key: 'cherry', ...TREE_MARKER_STYLES.cherry },
+  {
+    key: 'mixed',
+    label: 'Useita hedelmätyyppejä',
+    color: TREE_MIXED_FRUIT_CLUSTER_COLOR,
+  },
+] as const

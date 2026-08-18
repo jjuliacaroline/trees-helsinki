@@ -6,8 +6,8 @@ import {
   projectTreesForMap,
 } from '../src/map/treeMapData'
 import {
-  getFruitClusterCategory,
   getTreeClusterColorExpression,
+  TREE_DEFAULT_CLUSTER_COLOR_EXPRESSION,
   TREE_MARKER_STYLES,
   TREE_MIXED_FRUIT_CLUSTER_COLOR,
 } from '../src/map/treeMarkerStyles'
@@ -108,32 +108,11 @@ test('selected non-fruit tree is included in highlight data for the selection ri
   ])
 })
 
-test('identifies homogeneous and mixed edible cluster composition', () => {
-  assert.equal(
-    getFruitClusterCategory({
-      pointCount: 3,
-      appleCount: 3,
-      pearCount: 0,
-      plumCount: 0,
-      cherryCount: 0,
-    }),
-    'apple',
-  )
-  assert.equal(
-    getFruitClusterCategory({
-      pointCount: 4,
-      appleCount: 2,
-      pearCount: 0,
-      plumCount: 0,
-      cherryCount: 2,
-    }),
-    'mixed',
-  )
-})
-
 test('cluster styling uses the selected fruit color and neutral mixed-fruit color', () => {
   assert.equal(getTreeClusterColorExpression('pear'), TREE_MARKER_STYLES.pear.color)
+  assert.equal(getTreeClusterColorExpression('cherry'), TREE_MARKER_STYLES.cherry.color)
 
   const edibleExpression = getTreeClusterColorExpression('edible')
   assert.equal(edibleExpression[edibleExpression.length - 1], TREE_MIXED_FRUIT_CLUSTER_COLOR)
+  assert.deepEqual(getTreeClusterColorExpression(''), TREE_DEFAULT_CLUSTER_COLOR_EXPRESSION)
 })
