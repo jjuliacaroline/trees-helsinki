@@ -62,9 +62,11 @@ export function TreeFilterPanel({
 
   return (
     <section className="tree-filter-panel" aria-label="Puiden haku ja suodatus">
-      <label className="tree-filter-panel__search">
-        <span>Hae puita</span>
+      <label className="tree-filter-panel__search" htmlFor="tree-search">
+        <span id="tree-search-label">Hae puita</span>
         <input
+          id="tree-search"
+          aria-labelledby="tree-search-label"
           type="search"
           value={filters.search}
           onChange={(event) => update('search', event.target.value)}
@@ -72,9 +74,11 @@ export function TreeFilterPanel({
         />
       </label>
 
-      <label className="tree-filter-panel__fruit">
-        <span>Näytä</span>
+      <label className="tree-filter-panel__fruit" htmlFor="tree-fruit-category">
+        <span id="tree-fruit-category-label">Näytä</span>
         <select
+          id="tree-fruit-category"
+          aria-labelledby="tree-fruit-category-label"
           value={filters.fruitCategory}
           onChange={(event) => updateFruitCategory(event.target.value as FruitCategoryFilter)}
         >
@@ -98,9 +102,14 @@ export function TreeFilterPanel({
         <summary>Suodattimet{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}</summary>
 
         <div className="tree-filter-panel__fields">
-          <label>
-            <span>Suku</span>
-            <select value={filters.genus} onChange={(event) => updateGenus(event.target.value)}>
+          <label htmlFor="tree-genus">
+            <span id="tree-genus-label">Suku</span>
+            <select
+              id="tree-genus"
+              aria-labelledby="tree-genus-label"
+              value={filters.genus}
+              onChange={(event) => updateGenus(event.target.value)}
+            >
               <option value="">Kaikki suvut</option>
               {options.genera.map((value) => (
                 <option key={value} value={value}>{value}</option>
@@ -108,9 +117,14 @@ export function TreeFilterPanel({
             </select>
           </label>
 
-          <label>
-            <span>Laji</span>
-            <select value={filters.species} onChange={(event) => update('species', event.target.value)}>
+          <label htmlFor="tree-species">
+            <span id="tree-species-label">Laji</span>
+            <select
+              id="tree-species"
+              aria-labelledby="tree-species-label"
+              value={filters.species}
+              onChange={(event) => update('species', event.target.value)}
+            >
               <option value="">Kaikki lajit</option>
               {options.species.map((value) => (
                 <option key={value} value={value}>{value}</option>
@@ -118,9 +132,14 @@ export function TreeFilterPanel({
             </select>
           </label>
 
-          <label>
-            <span>Tyyppi</span>
-            <select value={filters.mainType} onChange={(event) => update('mainType', event.target.value)}>
+          <label htmlFor="tree-main-type">
+            <span id="tree-main-type-label">Tyyppi</span>
+            <select
+              id="tree-main-type"
+              aria-labelledby="tree-main-type-label"
+              value={filters.mainType}
+              onChange={(event) => update('mainType', event.target.value)}
+            >
               <option value="">Kaikki tyypit</option>
               {options.mainTypes.map((value) => (
                 <option key={value} value={value}>{value}</option>
@@ -131,9 +150,11 @@ export function TreeFilterPanel({
           <fieldset className="tree-filter-panel__year-range">
             <legend>Istutusvuosi</legend>
             <div className="tree-filter-panel__year-inputs">
-              <label>
-                <span>Alkaen</span>
+              <label htmlFor="tree-planting-year-from">
+                <span id="tree-planting-year-from-label">Alkaen</span>
                 <input
+                  id="tree-planting-year-from"
+                  aria-labelledby="tree-planting-year-from-label"
                   type="number"
                   step="1"
                   inputMode="numeric"
@@ -143,9 +164,11 @@ export function TreeFilterPanel({
                   aria-describedby={invalidPlantingYearRange ? plantingYearErrorId : undefined}
                 />
               </label>
-              <label>
-                <span>Asti</span>
+              <label htmlFor="tree-planting-year-to">
+                <span id="tree-planting-year-to-label">Asti</span>
                 <input
+                  id="tree-planting-year-to"
+                  aria-labelledby="tree-planting-year-to-label"
                   type="number"
                   step="1"
                   inputMode="numeric"
@@ -163,9 +186,14 @@ export function TreeFilterPanel({
             ) : null}
           </fieldset>
 
-          <label>
-            <span>Kokoluokka</span>
-            <select value={filters.sizeClass} onChange={(event) => update('sizeClass', event.target.value)}>
+          <label htmlFor="tree-size-class">
+            <span id="tree-size-class-label">Kokoluokka</span>
+            <select
+              id="tree-size-class"
+              aria-labelledby="tree-size-class-label"
+              value={filters.sizeClass}
+              onChange={(event) => update('sizeClass', event.target.value)}
+            >
               <option value="">Kaikki kokoluokat</option>
               {options.sizeClasses.map((value) => (
                 <option key={value} value={value}>{value}</option>
