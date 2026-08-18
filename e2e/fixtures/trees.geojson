@@ -1,0 +1,131 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1001,
+        "tunnus": "TEST-PLUM",
+        "kadunnimi": null,
+        "puistonnimi": "Testipuisto",
+        "paatyyppi": "Lehtipuu",
+        "suomenknimi": "Luumu",
+        "suku": "Prunus",
+        "laji": "domestica",
+        "kokoluokka": "Pieni",
+        "istutusvuosi": 2010,
+        "datanomistaja": "Helsinki",
+        "paivitetty_tietopalveluun": "2026-08-01"
+      },
+      "geometry": { "type": "Point", "coordinates": [24.9384, 60.1699] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1002,
+        "tunnus": "TEST-PEAR",
+        "kadunnimi": "Päärynätie",
+        "puistonnimi": null,
+        "paatyyppi": "Lehtipuu",
+        "suomenknimi": "Päärynä",
+        "suku": "Pyrus",
+        "laji": "communis",
+        "kokoluokka": "Keskikokoinen",
+        "istutusvuosi": 2012,
+        "datanomistaja": "Helsinki",
+        "paivitetty_tietopalveluun": "2026-08-01"
+      },
+      "geometry": { "type": "Point", "coordinates": [24.9484, 60.1699] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1003,
+        "tunnus": "TEST-APPLE",
+        "kadunnimi": "Omenakuja",
+        "puistonnimi": null,
+        "paatyyppi": "Lehtipuu",
+        "suomenknimi": "Omena",
+        "suku": "Malus",
+        "laji": "domestica",
+        "kokoluokka": "Keskikokoinen",
+        "istutusvuosi": 2015,
+        "datanomistaja": "Helsinki",
+        "paivitetty_tietopalveluun": "2026-08-01"
+      },
+      "geometry": { "type": "Point", "coordinates": [24.9284, 60.1699] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1004,
+        "tunnus": "TEST-SWEET-CHERRY",
+        "kadunnimi": null,
+        "puistonnimi": "Kirsikkapuisto",
+        "paatyyppi": "Lehtipuu",
+        "suomenknimi": "Makeakirsikka",
+        "suku": "Prunus",
+        "laji": "avium",
+        "kokoluokka": "Suuri",
+        "istutusvuosi": 2018,
+        "datanomistaja": "Helsinki",
+        "paivitetty_tietopalveluun": "2026-08-01"
+      },
+      "geometry": { "type": "Point", "coordinates": [24.9384, 60.1799] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1005,
+        "tunnus": "TEST-SOUR-CHERRY",
+        "kadunnimi": null,
+        "puistonnimi": "Kirsikkapuisto",
+        "paatyyppi": "Lehtipuu",
+        "suomenknimi": "Hapankirsikka",
+        "suku": "Prunus",
+        "laji": "cerasus",
+        "kokoluokka": "Pieni",
+        "istutusvuosi": 2020,
+        "datanomistaja": "Helsinki",
+        "paivitetty_tietopalveluun": "2026-08-01"
+      },
+      "geometry": { "type": "Point", "coordinates": [24.9384, 60.1599] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1006,
+        "tunnus": "TEST-AMBIGUOUS-PRUNUS",
+        "kadunnimi": "Epäselväntie",
+        "puistonnimi": null,
+        "paatyyppi": "Lehtipuu",
+        "suomenknimi": "Tuomi/kirsikka",
+        "suku": "Prunus",
+        "laji": "sp.",
+        "kokoluokka": "Pieni",
+        "istutusvuosi": 2005,
+        "datanomistaja": "Helsinki",
+        "paivitetty_tietopalveluun": "2026-08-01"
+      },
+      "geometry": { "type": "Point", "coordinates": [24.9584, 60.1699] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1007,
+        "tunnus": "TEST-MAPLE",
+        "kadunnimi": "Vaahteratie",
+        "puistonnimi": null,
+        "paatyyppi": "Lehtipuu",
+        "suomenknimi": "Metsävaahtera",
+        "suku": "Acer",
+        "laji": "platanoides",
+        "kokoluokka": "Suuri",
+        "istutusvuosi": 2021,
+        "datanomistaja": "Helsinki",
+        "paivitetty_tietopalveluun": "2026-08-01"
+      },
+      "geometry": { "type": "Point", "coordinates": [24.9184, 60.1699] }
+    }
+  ]
+}

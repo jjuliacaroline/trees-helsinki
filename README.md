@@ -25,6 +25,13 @@ npm test
 npm run build
 ```
 
+Browser smoke tests use Playwright with a small deterministic tree fixture rather than the live Helsinki registry. Install the Chromium test browser once, then run the suite with:
+
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
+
 ## Tree data
 
 The source is the City of Helsinki `Puurekisteri_piste` WFS layer. Fetch the current registry snapshot with:
