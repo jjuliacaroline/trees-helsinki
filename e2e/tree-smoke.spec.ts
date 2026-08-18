@@ -122,3 +122,38 @@ test('unavailable geolocation is non-blocking', async ({ page }) => {
   await page.getByLabel('Näytä', { exact: true }).selectOption('plum')
   await expect(treeStatus(page)).toHaveText('1 puuta kartalla')
 })
+
+test('permission denial is non-blocking and clears the previous location', async ({ page }) => {
+  await page.addInitScript(() => {
+    let requestCount = 0
+    Object.defineProperty(navigator, 'geolocation', {
+      configurable: true,
+      value: {
+        getCurrentPosition: (success: PositionCallback, error?: PositionErrorCallback) => {
+          requestCount += 1
+          if (requestCount === 1) {
+            success({
+              coords: { longitude: 24.9384, latitude: 60.1699 } as GeolocationCoordinates,
+              timestamp: Date.now(),
+            } as GeolocationPosition)
+          } else {
+            error?.({ code: 1, message: 'Permission denied' } as GeolocationPositionError)
+          }
+        },
+      },
+    })
+  })
+  await page.reload()
+
+  const locationButton = page.getByRole('button', { name: 'Käytä sijaintiani' })
+  await locationButton.click()
+  await expect(page.getByRole('heading', { name: 'Lähimmät puut' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Päivitä sijaintini' })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Päivitä sijaintini' }).click()
+  await expect(page.getByText('Sijaintilupaa ei annettu. Karttaa ja suodattimia voi käyttää normaalisti.')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Lähimmät puut' })).not.toBeVisible()
+
+  await page.getByLabel('Näytä', { exact: true }).selectOption('plum')
+  await expect(treeStatus(page)).toHaveText('1 puuta kartalla')
+})

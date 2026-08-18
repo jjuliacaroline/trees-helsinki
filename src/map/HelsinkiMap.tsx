@@ -222,7 +222,10 @@ export function HelsinkiMap() {
         setUserLocation([position.coords.longitude, position.coords.latitude])
         setLocationStatus('ready')
       },
-      (error) => setLocationStatus(error.code === 1 ? 'denied' : 'unavailable'),
+      (error) => {
+        setUserLocation(null)
+        setLocationStatus(error.code === 1 ? 'denied' : 'unavailable')
+      },
       { enableHighAccuracy: false, maximumAge: 60_000, timeout: 10_000 },
     )
   }
