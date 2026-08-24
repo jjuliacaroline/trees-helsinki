@@ -6,7 +6,17 @@ The application uses React, TypeScript, Vite, and MapLibre GL JS. It starts as a
 
 ## Project status
 
-The web application foundation is initialized and the repository includes a tested ingestion path for Helsinki's public tree registry. Rendering registered trees on the map is tracked separately.
+The current application includes the map experience, source-backed tree data, local saved trees, and browser-based nearby-tree lookup.
+
+## Features
+
+- Explore the Helsinki tree registry on an interactive map.
+- Ingest and validate the City of Helsinki tree registry as GeoJSON.
+- Search and filter source-backed tree properties.
+- Apply separate Trees Helsinki classifications, including fruit categories.
+- Request browser geolocation to find nearby trees after explicit user action.
+- Save stable numeric tree IDs locally in the browser.
+- Run unit tests, browser smoke tests, type checks, and a production build in GitHub Actions CI.
 
 ## Local development
 
@@ -52,17 +62,16 @@ The registry contains public street and park trees and is not a complete invento
 
 ## Product direction
 
-- Browse registered trees on a map.
-- Search and filter source-backed tree properties.
-- Add clearly separated application-owned classifications for useful categories.
-- Use browser geolocation for nearby trees.
-- Save trees locally in the browser.
 - Keep hosting and data refresh static and free-first.
 
 The initial architecture does not require a custom backend, database, authentication, or server-side rendering.
 
-## Data
+## Licensing and attribution
 
-Tree data comes from the City of Helsinki open tree registry. Source fields and application-derived classifications are kept separate, and generated live registry snapshots are treated as build artifacts rather than normal Git history.
+The application source code is licensed under the [MIT License](LICENSE). That license applies to this repository's source code, not to external data or map resources.
 
-Attribution and source licensing information will be shown alongside published data.
+Tree data comes from the [City of Helsinki open tree registry](https://hri.fi/data/en_GB/dataset/helsingin-kaupungin-puurekisteri). It is external City of Helsinki open data; attribution and source licensing are handled separately under the source's current terms.
+
+The basemap is provided by [OpenFreeMap](https://openfreemap.org/). Its upstream map data comes from [OpenStreetMap](https://www.openstreetmap.org/), so the map's upstream attribution and licensing terms apply separately from this repository's MIT license.
+
+Source fields and application-derived classifications are kept separate, and generated live registry snapshots are treated as build artifacts rather than normal Git history.
