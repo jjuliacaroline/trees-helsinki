@@ -94,6 +94,11 @@ export function TreeFilterPanel({
           <button className="tree-filter-panel__reset" type="button" onClick={onReset} disabled={!hasActiveTreeFilters(filters)}>Tyhjennä haku ja suodattimet</button>
         </>
       )}
+
+      <details className="tree-filter-panel__privacy">
+        <summary>Tietosuoja</summary>
+        <p>Sijaintia käytetään vain, kun pyydät sitä selaimen geolocation-toiminnolla. Koordinaatit säilyvät selaimen muistissa eikä sovellus tallenna niitä. Tallennetut puut säilytetään localStoragessa vain vakaina numeerisina puutunnisteina. Karttapohja ladataan <a href="https://openfreemap.org/" target="_blank" rel="noreferrer">OpenFreeMapista</a>, joten katsotun alueen karttaresursseja pyydetään ulkoiselta palvelulta.</p>
+      </details>
     </section>
   )
 }

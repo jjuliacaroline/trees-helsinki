@@ -28,6 +28,30 @@
   border-top: 1px solid #ddd;
 }
 
+.tree-filter-panel__privacy {
+  margin-top: 14px;
+  border-top: 1px solid #ddd;
+  padding-top: 12px;
+}
+
+.tree-filter-panel__privacy summary {
+  cursor: pointer;
+  color: #4d5660;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.tree-filter-panel__privacy p {
+  margin: 8px 0 0;
+  color: #60666d;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.tree-filter-panel__privacy a {
+  color: inherit;
+}
+
 .tree-filter-panel__nearby h3 {
   margin: 12px 0 8px;
   font-size: 0.9rem;
