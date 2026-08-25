@@ -82,6 +82,8 @@ Pull-request validation and production deployment are deliberately separate.
 
 A separate deployment job depends on the build job and publishes only that completed artifact. If source fetching, validation, tests, or the build fail, deployment does not run and the existing published site is left in place.
 
+Before the first deployment, configure the repository once in **Settings → Pages → Build and deployment → Source** and select **GitHub Actions**. The workflow then uses the repository `GITHUB_TOKEN`; no personal access token or deployment secret is needed.
+
 The scheduled refresh produces deployment artifacts only. It does not create a daily Git commit containing the generated tree dataset.
 
 For local development, run `npm run data:fetch` when you need a fresh live dataset. The normal Vite development server continues to use the root base path rather than the GitHub Pages repository path.
