@@ -4,6 +4,9 @@ Trees Helsinki is a web application for exploring Helsinki's public tree registr
 
 The application uses React, TypeScript, Vite, and MapLibre GL JS. It is a static client application with a generated GeoJSON snapshot derived from Helsinki open data.
 
+## Live application:
+[Trees Helsinki](https://jjuliacaroline.github.io/trees-helsinki/)
+
 ## Project status
 
 The current application includes the map experience, source-backed tree data, local saved trees, browser-based nearby-tree lookup, and automated GitHub Pages deployment with a daily production data refresh.
