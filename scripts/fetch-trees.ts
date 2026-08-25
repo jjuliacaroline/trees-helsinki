@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { Agent } from 'undici'
 import { latestSourceUpdatedAt, type TreeSnapshotMetadata } from '../src/data/treeSnapshotMetadata'
 import {
   hasRepresentativeHelsinkiCoordinate,
@@ -16,6 +17,7 @@ const PAGE_SIZE = 5000
 const REQUEST_TIMEOUT_MS = 60_000
 const MAX_RETRIES = 3
 const RETRY_DELAYS_MS = [1_000, 2_000, 4_000] as const
+const WFS_AGENT = new Agent({ connect: { timeout: REQUEST_TIMEOUT_MS } })
 const OUTPUT_PATH = resolve(process.cwd(), 'public/data/trees.geojson')
 const METADATA_OUTPUT_PATH = resolve(
   process.cwd(),
@@ -69,12 +71,14 @@ async function fetchResponseWithRetries(
     let retryableHttpFailure = false
 
     try {
-      const response = await (options.fetchImpl ?? fetch)(url, {
+      const requestInit = {
         headers: {
           accept: 'application/json',
         },
+        dispatcher: WFS_AGENT,
         signal: AbortSignal.timeout(options.requestTimeoutMs ?? REQUEST_TIMEOUT_MS),
-      })
+      } as RequestInit & { dispatcher: Agent }
+      const response = await (options.fetchImpl ?? fetch)(url, requestInit)
 
       if (!response.ok && TRANSIENT_HTTP_STATUSES.has(response.status)) {
         retryableHttpFailure = true

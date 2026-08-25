@@ -22,6 +22,7 @@ test('retries transient network failures three times before succeeding', async (
   let attempts = 0
   const delays: number[] = []
   const signals: AbortSignal[] = []
+  const dispatchers: unknown[] = []
   const networkError = new TypeError(
     'fetch failed',
     { cause: Object.assign(new Error('connection reset'), { code: 'ECONNRESET' }) },
@@ -32,6 +33,7 @@ test('retries transient network failures three times before succeeding', async (
       attempts += 1
       assert.ok(init?.signal)
       signals.push(init.signal)
+      dispatchers.push((init as { dispatcher?: unknown } | undefined)?.dispatcher)
 
       if (attempts <= 3) {
         throw networkError
@@ -48,6 +50,7 @@ test('retries transient network failures three times before succeeding', async (
   assert.equal(attempts, 4)
   assert.deepEqual(delays, [1_000, 2_000, 4_000])
   assert.equal(signals.length, 4)
+  assert.ok(dispatchers.every(Boolean))
 })
 
 test('does not retry a successful HTTP response with invalid data', async () => {
