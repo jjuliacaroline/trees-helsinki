@@ -1,0 +1,26 @@
+.tree-data-info {
+  flex: 0 0 auto;
+  padding: 8px 16px 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  color: #3f4650;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.tree-data-info p {
+  margin: 0;
+}
+
+.tree-data-info p + p {
+  margin-top: 2px;
+}
+
+.tree-data-info a {
+  color: inherit;
+}
+
+.tree-data-info__metadata,
+.tree-data-info__notice {
+  color: #646b74;
+}
