@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import { latestSourceUpdatedAt, type TreeSnapshotMetadata } from '../src/data/treeSnapshotMetadata'
 import {
   hasRepresentativeHelsinkiCoordinate,
   normalizeTreeFeatureCollection,
@@ -12,6 +13,10 @@ const WFS_ENDPOINT = 'https://kartta.hel.fi/ws/geoserver/avoindata/wfs'
 const LAYER_NAME = 'avoindata:Puurekisteri_piste'
 const PAGE_SIZE = 5000
 const OUTPUT_PATH = resolve(process.cwd(), 'public/data/trees.geojson')
+const METADATA_OUTPUT_PATH = resolve(
+  process.cwd(),
+  'public/data/generated/tree-metadata.json',
+)
 
 function buildPageUrl(startIndex: number): URL {
   const url = new URL(WFS_ENDPOINT)
@@ -88,9 +93,20 @@ async function fetchAllTrees(): Promise<HelsinkiTreeFeatureCollection> {
 
 async function main(): Promise<void> {
   const collection = await fetchAllTrees()
-  await mkdir(resolve(process.cwd(), 'public/data'), { recursive: true })
+  const metadata: TreeSnapshotMetadata = {
+    generatedAt: new Date().toISOString(),
+    sourceUpdatedAt: latestSourceUpdatedAt(collection.features),
+  }
+
+  await mkdir(resolve(process.cwd(), 'public/data/generated'), { recursive: true })
   await writeFile(OUTPUT_PATH, `${JSON.stringify(collection, null, 2)}\n`, 'utf8')
+  await writeFile(
+    METADATA_OUTPUT_PATH,
+    `${JSON.stringify(metadata, null, 2)}\n`,
+    'utf8',
+  )
   console.log(`Wrote ${collection.features.length} trees to ${OUTPUT_PATH}`)
+  console.log(`Wrote tree snapshot metadata to ${METADATA_OUTPUT_PATH}`)
 }
 
 main().catch((error: unknown) => {
