@@ -10,25 +10,25 @@ permissions:
 
 jobs:
   diagnose:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     timeout-minutes: 5
 
     steps:
-      - name: Inspect HRI metadata for an alternate official delivery path
+      - name: Probe Helsinki WFS from macOS GitHub-hosted runner
         shell: bash
         run: |
           set -euo pipefail
 
-          api='https://hri.fi/data/api/action/package_show?id=helsingin-kaupungin-puurekisteri'
-          response="$(curl \
+          url='https://kartta.hel.fi/ws/geoserver/avoindata/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=avoindata%3APuurekisteri_piste&outputFormat=application%2Fjson&srsName=EPSG%3A4326&count=1&startIndex=0&sortBy=id'
+          format='dns=%{time_namelookup}s tcp=%{time_connect}s tls=%{time_appconnect}s ttfb=%{time_starttransfer}s total=%{time_total}s status=%{http_code} remote_ip=%{remote_ip}\n'
+
+          curl \
             --fail \
             --silent \
             --show-error \
             --location \
-            --connect-timeout 10 \
-            --max-time 30 \
-            --user-agent 'Mozilla/5.0 (compatible; trees-helsinki-diagnostics/1.0)' \
-            --header 'accept: application/json' \
-            "$api")"
-
-          printf '%s' "$response" | jq '{success, resources: [.result.resources[] | {id, name, format, url, cache_url, datastore_active, url_type}]}'
+            --connect-timeout 15 \
+            --max-time 60 \
+            --output /dev/null \
+            --write-out "$format" \
+            "$url"
