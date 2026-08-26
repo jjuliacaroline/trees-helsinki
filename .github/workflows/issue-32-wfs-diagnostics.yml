@@ -1,0 +1,44 @@
+name: Issue 32 WFS diagnostics
+
+on:
+  push:
+    branches:
+      - issue-32-wfs-diagnostics
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Probe Helsinki WFS from GitHub-hosted runner
+        shell: bash
+        run: |
+          set -u
+
+          endpoint='https://kartta.hel.fi/ws/geoserver/avoindata/wfs'
+          format='probe=%s dns=%{time_namelookup}s tcp=%{time_connect}s tls=%{time_appconnect}s ttfb=%{time_starttransfer}s total=%{time_total}s status=%{http_code} remote_ip=%{remote_ip}\n'
+
+          probe() {
+            local name="$1"
+            local url="$2"
+            echo "--- ${name} ---"
+            curl \
+              --silent \
+              --show-error \
+              --location \
+              --connect-timeout 15 \
+              --max-time 75 \
+              --output /dev/null \
+              --write-out "${format}" \
+              "$url" || true
+          }
+
+          probe 'GetCapabilities' "${endpoint}?service=WFS&version=2.0.0&request=GetCapabilities"
+
+          for count in 1 100 500 1000 2000 5000; do
+            probe "GetFeature-count-${count}" "${endpoint}?service=WFS&version=2.0.0&request=GetFeature&typeNames=avoindata%3APuurekisteri_piste&outputFormat=application%2Fjson&srsName=EPSG%3A4326&count=${count}&startIndex=0&sortBy=id"
+          done
