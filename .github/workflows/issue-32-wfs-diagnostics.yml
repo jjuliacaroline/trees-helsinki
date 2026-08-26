@@ -11,39 +11,24 @@ permissions:
 jobs:
   diagnose:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
 
     steps:
-      - name: Probe Helsinki WFS connectivity from GitHub-hosted runner
+      - name: Inspect HRI metadata for an alternate official delivery path
         shell: bash
         run: |
-          set -u
+          set -euo pipefail
 
-          https_url='https://kartta.hel.fi/ws/geoserver/avoindata/wfs?service=WFS&version=2.0.0&request=GetCapabilities'
-          http_url='http://kartta.hel.fi/ws/geoserver/avoindata/wfs?service=WFS&version=2.0.0&request=GetCapabilities'
-          hri_url='https://hri.fi/data/fi/dataset/helsingin-kaupungin-puurekisteri'
-          format='dns=%{time_namelookup}s tcp=%{time_connect}s tls=%{time_appconnect}s ttfb=%{time_starttransfer}s total=%{time_total}s status=%{http_code} remote_ip=%{remote_ip}\n'
+          api='https://hri.fi/data/api/action/package_show?id=helsingin-kaupungin-puurekisteri'
+          response="$(curl \
+            --fail \
+            --silent \
+            --show-error \
+            --location \
+            --connect-timeout 10 \
+            --max-time 30 \
+            --user-agent 'Mozilla/5.0 (compatible; trees-helsinki-diagnostics/1.0)' \
+            --header 'accept: application/json' \
+            "$api")"
 
-          echo '--- DNS ---'
-          getent ahosts kartta.hel.fi || true
-
-          probe() {
-            local name="$1"
-            shift
-            echo "--- ${name} ---"
-            curl \
-              --silent \
-              --show-error \
-              --location \
-              --connect-timeout 10 \
-              --max-time 20 \
-              --output /dev/null \
-              --write-out "${format}" \
-              "$@" || true
-          }
-
-          probe 'HTTPS default' "$https_url"
-          probe 'HTTPS IPv4' --ipv4 "$https_url"
-          probe 'HTTPS IPv6' --ipv6 "$https_url"
-          probe 'HTTP default' "$http_url"
-          probe 'HRI HTTPS control' "$hri_url"
+          printf '%s' "$response" | jq '{success, resources: [.result.resources[] | {id, name, format, url, cache_url, datastore_active, url_type}]}'
