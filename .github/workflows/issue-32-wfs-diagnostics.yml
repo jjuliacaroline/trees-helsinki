@@ -10,11 +10,11 @@ permissions:
 
 jobs:
   diagnose:
-    runs-on: macos-latest
+    runs-on: macos-15-intel
     timeout-minutes: 5
 
     steps:
-      - name: Probe Helsinki WFS from macOS GitHub-hosted runner
+      - name: Probe Helsinki WFS from Intel macOS GitHub-hosted runner
         shell: bash
         run: |
           set -euo pipefail
