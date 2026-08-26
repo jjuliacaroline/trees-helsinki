@@ -14,10 +14,11 @@ import {
 const WFS_ENDPOINT = 'https://kartta.hel.fi/ws/geoserver/avoindata/wfs'
 const LAYER_NAME = 'avoindata:Puurekisteri_piste'
 const PAGE_SIZE = 5000
+const CONNECT_TIMEOUT_MS = 15_000
 const REQUEST_TIMEOUT_MS = 60_000
 const MAX_RETRIES = 3
 const RETRY_DELAYS_MS = [1_000, 2_000, 4_000] as const
-const WFS_AGENT = new Agent({ connect: { timeout: REQUEST_TIMEOUT_MS } })
+const WFS_AGENT = new Agent({ connect: { timeout: CONNECT_TIMEOUT_MS } })
 const OUTPUT_PATH = resolve(process.cwd(), 'public/data/trees.geojson')
 const METADATA_OUTPUT_PATH = resolve(
   process.cwd(),
@@ -47,9 +48,14 @@ export function formatFetchError(error: unknown): string {
     : typeof causeCode === 'string'
       ? causeCode
       : undefined
+  const phaseText = code === 'UND_ERR_CONNECT_TIMEOUT'
+    ? ' [connection timeout]'
+    : error.name === 'TimeoutError'
+      ? ' [request timeout]'
+      : ''
   const causeText = cause instanceof Error ? `; cause: ${cause.message}` : ''
   const codeText = code ? ` (code=${code})` : ''
-  return `${error.name}: ${error.message}${codeText}${causeText}`
+  return `${error.name}${phaseText}: ${error.message}${codeText}${causeText}`
 }
 
 function isTransientNetworkError(error: unknown): boolean {
