@@ -97,6 +97,7 @@ test('aborts and retries a request that exceeds its timeout', async () => {
     }),
     (error: unknown) => {
       assert.match(formatFetchError(error), /TimeoutError/)
+      assert.match(formatFetchError(error), /\[request timeout\]/)
       return true
     },
   )
@@ -123,4 +124,17 @@ test('reports the final network cause and code after retries are exhausted', asy
       return true
     },
   )
+})
+
+test('labels Undici connection timeouts separately from request timeouts', () => {
+  const connectionTimeout = new TypeError('fetch failed', {
+    cause: Object.assign(new Error('Connect Timeout Error'), {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+    }),
+  })
+
+  const formatted = formatFetchError(connectionTimeout)
+  assert.match(formatted, /\[connection timeout\]/)
+  assert.match(formatted, /UND_ERR_CONNECT_TIMEOUT/)
+  assert.match(formatted, /Connect Timeout Error/)
 })
