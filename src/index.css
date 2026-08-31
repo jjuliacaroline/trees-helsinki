@@ -506,7 +506,7 @@ summary {
   .mobile-map-controls__location {
     position: absolute;
     right: 14px;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 254px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 318px);
     border-radius: 50%;
   }
 
@@ -591,8 +591,9 @@ summary {
     line-height: 1.2;
   }
 
-  .mobile-map-controls__peek p::first-line {
-    font-weight: 650;
+  .mobile-map-controls__peek p strong {
+    color: #15171a;
+    font-weight: 750;
   }
 
   .mobile-map-controls__peek button {
@@ -621,7 +622,7 @@ summary {
   .maplibregl-ctrl-top-right {
     top: auto;
     right: 4px;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 170px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 210px);
   }
 
   .maplibregl-ctrl-top-right .maplibregl-ctrl-compass {

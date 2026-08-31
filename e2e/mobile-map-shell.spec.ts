@@ -49,8 +49,9 @@ test.describe('mobile map-first shell', () => {
     await page.getByRole('button', { name: 'Sulje suodattimet' }).click()
 
     await page.getByRole('button', { name: 'Tietoja puuaineistosta' }).click()
-    await expect(page.getByLabel('Mobiilin puutietojen lähde')).toBeVisible()
-    await expect(page.getByLabel('Puutietojen lähde')).toBeVisible()
+    const info = page.getByLabel('Mobiilin puutietojen lähde')
+    await expect(info).toBeVisible()
+    await expect(info.getByLabel('Puutietojen lähde')).toBeVisible()
     await page.getByRole('button', { name: 'Sulje puuaineiston tiedot' }).click()
 
     await page.getByRole('button', { name: 'Käytä sijaintiani' }).click()
