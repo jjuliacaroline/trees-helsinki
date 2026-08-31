@@ -20,4 +20,15 @@
   .app-shell > .map-shell {
     height: 100%;
   }
+
+  .mobile-map-controls__peek {
+    background: #fff;
+  }
+
+  .map-shell:has(.tree-details) .mobile-map-controls__location,
+  .map-shell:has(.tree-details) .mobile-map-controls__filters,
+  .map-shell:has(.tree-details) .mobile-map-controls__peek,
+  .map-shell:has(.tree-details) .maplibregl-ctrl-top-right {
+    display: none;
+  }
 }

@@ -27,6 +27,32 @@ test.describe('mobile map-first shell', () => {
     await expect(page.getByLabel('Karttatulokset')).toContainText('1 puuta kartalla')
   })
 
+  test('selected tree details do not overlap lower mobile map controls', async ({ page }) => {
+    await loadMobileApp(page)
+    await page.getByLabel('Hae puita kartalta').fill('Luumu')
+    await expect(page.getByLabel('Karttatulokset')).toContainText('1 puuta kartalla')
+
+    const canvas = page.locator('.maplibregl-canvas')
+    const details = page.getByLabel('Selected tree details')
+    await expect(async () => {
+      const box = await canvas.boundingBox()
+      expect(box).not.toBeNull()
+      if (!box) return
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+      expect(await details.isVisible()).toBe(true)
+    }).toPass({ timeout: 5_000 })
+
+    await expect(page.getByLabel('Hae puita kartalta')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Suodattimet, 0 aktiivista' })).not.toBeVisible()
+    await expect(page.getByRole('button', { name: 'Käytä sijaintiani' })).not.toBeVisible()
+    await expect(page.getByLabel('Karttatulokset')).not.toBeVisible()
+    await expect(page.locator('.maplibregl-ctrl-top-right')).not.toBeVisible()
+
+    await details.getByRole('button', { name: 'Sulje puun tiedot' }).click()
+    await expect(page.getByRole('button', { name: 'Suodattimet, 0 aktiivista' })).toBeVisible()
+    await expect(page.getByLabel('Karttatulokset')).toBeVisible()
+  })
+
   test('saved, filter, info and location controls stay wired to existing behavior', async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem('trees-helsinki.saved-tree-ids.v1', '[1001]')
