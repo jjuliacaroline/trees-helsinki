@@ -19,6 +19,8 @@ import {
   normalizeTreeFeatureCollection,
   type HelsinkiTreeFeature,
 } from '../data/treeRegistry'
+import { MobileMapControls } from './MobileMapControls'
+import { TreeDataInfo } from './TreeDataInfo'
 import { TreeDetailsPanel } from './TreeDetailsPanel'
 import {
   TreeFilterPanel,
@@ -50,6 +52,17 @@ const SELECTED_TREE_LAYER_ID = 'selected-tree-highlight'
 const TREE_LAYER_ID = 'tree-points'
 const USER_LOCATION_LAYER_ID = 'user-location-point'
 
+function countActiveFilters(filters: TreeFilters): number {
+  return [
+    filters.fruitCategory,
+    filters.genus,
+    filters.species,
+    filters.mainType,
+    filters.plantingYearFrom !== null || filters.plantingYearTo !== null ? 'planting-year' : '',
+    filters.sizeClass,
+  ].filter((value) => value !== '').length
+}
+
 export function HelsinkiMap() {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<Map | null>(null)
@@ -65,6 +78,8 @@ export function HelsinkiMap() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [effectiveSearch, setEffectiveSearch] = useState(filters.search)
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const [mobileInfoOpen, setMobileInfoOpen] = useState(false)
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => setEffectiveSearch(filters.search), 200)
@@ -107,6 +122,7 @@ export function HelsinkiMap() {
   const nearbyTrees = useMemo(() => userLocation && viewMode === 'browse' ? findNearestTrees(filteredTrees, userLocation, 5) : [], [filteredTrees, userLocation, viewMode])
   const selectedTreeDistance = useMemo(() => userLocation && visibleSelectedTree?.geometry ? distanceMeters(userLocation, visibleSelectedTree.geometry.coordinates) : undefined, [userLocation, visibleSelectedTree])
   const filterOptions = useMemo(() => buildTreeFilterOptions(allTrees, filters.genus, filters.fruitCategory), [allTrees, filters.genus, filters.fruitCategory])
+  const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters])
   const treesByIdRef = useRef(treesById)
 
   useEffect(() => { treesByIdRef.current = treesById }, [treesById])
@@ -243,22 +259,61 @@ export function HelsinkiMap() {
   return (
     <div className="map-shell">
       <div ref={containerRef} className="map" aria-label="Interactive map of Helsinki trees" />
-      <TreeFilterPanel
-        filters={filters}
-        options={filterOptions}
-        resultCount={filteredTrees.length}
+      <MobileMapControls
+        search={filters.search}
+        resultCount={displayedTrees.length}
         loading={loading}
         error={loadError}
-        viewMode={viewMode}
-        savedTrees={savedTrees}
+        savedCount={savedTrees.length}
+        savedActive={viewMode === 'saved'}
+        activeFilterCount={activeFilterCount}
         locationStatus={locationStatus}
-        nearbyTrees={nearbyTrees}
-        onChange={setFilters}
-        onReset={() => setFilters({ ...EMPTY_TREE_FILTERS })}
-        onViewModeChange={setViewMode}
+        onSearchChange={(search) => setFilters((current) => ({ ...current, search }))}
+        onToggleSaved={() => setViewMode((current) => current === 'saved' ? 'browse' : 'saved')}
         onRequestLocation={requestLocation}
-        onSelectTree={focusTree}
+        onOpenFilters={() => {
+          setMobileInfoOpen(false)
+          setMobileFiltersOpen((current) => !current)
+        }}
+        onOpenInfo={() => {
+          setMobileFiltersOpen(false)
+          setMobileInfoOpen((current) => !current)
+        }}
       />
+      <div className={`tree-filter-panel-host${mobileFiltersOpen ? ' is-mobile-open' : ''}`}>
+        <button
+          type="button"
+          className="tree-filter-panel-host__close"
+          onClick={() => setMobileFiltersOpen(false)}
+        >
+          Sulje suodattimet
+        </button>
+        <TreeFilterPanel
+          filters={filters}
+          options={filterOptions}
+          resultCount={filteredTrees.length}
+          loading={loading}
+          error={loadError}
+          viewMode={viewMode}
+          savedTrees={savedTrees}
+          locationStatus={locationStatus}
+          nearbyTrees={nearbyTrees}
+          onChange={setFilters}
+          onReset={() => setFilters({ ...EMPTY_TREE_FILTERS })}
+          onViewModeChange={setViewMode}
+          onRequestLocation={requestLocation}
+          onSelectTree={focusTree}
+        />
+      </div>
+      {mobileInfoOpen ? (
+        <section className="mobile-map-info" aria-label="Mobiilin puutietojen lähde">
+          <div className="mobile-map-info__header">
+            <h2>Tietoja puuaineistosta</h2>
+            <button type="button" onClick={() => setMobileInfoOpen(false)} aria-label="Sulje puuaineiston tiedot">×</button>
+          </div>
+          <TreeDataInfo />
+        </section>
+      ) : null}
       {visibleSelectedTree ? (
         <TreeDetailsPanel
           tree={visibleSelectedTree}

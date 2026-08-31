@@ -8,3 +8,27 @@
   min-height: 0;
   height: auto;
 }
+
+@media (max-width: 760px) {
+  .app-shell {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .app-shell > .map-shell {
+    height: 100%;
+  }
+
+  .mobile-map-controls__peek {
+    background: #fff;
+  }
+
+  .map-shell:has(.tree-details) .mobile-map-controls__location,
+  .map-shell:has(.tree-details) .mobile-map-controls__filters,
+  .map-shell:has(.tree-details) .mobile-map-controls__peek,
+  .map-shell:has(.tree-details) .maplibregl-ctrl-top-right {
+    display: none;
+  }
+}
