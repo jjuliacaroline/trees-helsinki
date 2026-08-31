@@ -8,3 +8,16 @@
   min-height: 0;
   height: auto;
 }
+
+@media (max-width: 760px) {
+  .app-shell {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .app-shell > .map-shell {
+    height: 100%;
+  }
+}
