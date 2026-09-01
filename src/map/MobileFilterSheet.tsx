@@ -76,6 +76,7 @@ export function MobileFilterSheet({
             <span>Näytä</span>
             <select
               id={`${idPrefix}-category`}
+              aria-label="Näytä"
               value={filters.fruitCategory}
               onChange={(event) => updateFruitCategory(event.target.value as FruitCategoryFilter)}
             >
@@ -90,6 +91,7 @@ export function MobileFilterSheet({
             <span>Puutyyppi</span>
             <select
               id={`${idPrefix}-main-type`}
+              aria-label="Puutyyppi"
               value={filters.mainType}
               onChange={(event) => update('mainType', event.target.value)}
             >
@@ -102,6 +104,7 @@ export function MobileFilterSheet({
             <span>Laji</span>
             <select
               id={`${idPrefix}-species`}
+              aria-label="Laji"
               value={filters.species}
               onChange={(event) => update('species', event.target.value)}
             >
@@ -117,6 +120,7 @@ export function MobileFilterSheet({
                 <span className="sr-only">Istutusvuosi alkaen</span>
                 <input
                   id={`${idPrefix}-year-from`}
+                  aria-label="Istutusvuosi alkaen"
                   type="number"
                   step="1"
                   inputMode="numeric"
@@ -131,6 +135,7 @@ export function MobileFilterSheet({
                 <span className="sr-only">Istutusvuosi asti</span>
                 <input
                   id={`${idPrefix}-year-to`}
+                  aria-label="Istutusvuosi asti"
                   type="number"
                   step="1"
                   inputMode="numeric"
