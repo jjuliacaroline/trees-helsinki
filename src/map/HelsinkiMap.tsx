@@ -167,7 +167,7 @@ export function HelsinkiMap() {
       map.addLayer({ id: CLUSTER_LAYER_ID, type: 'circle', source: TREE_SOURCE_ID, filter: ['has', 'point_count'], paint: { 'circle-color': TREE_DEFAULT_CLUSTER_COLOR_EXPRESSION, 'circle-radius': ['step', ['get', 'point_count'], 18, 100, 24, 750, 30], 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 } })
       map.addLayer({ id: CLUSTER_COUNT_LAYER_ID, type: 'symbol', source: TREE_SOURCE_ID, filter: ['has', 'point_count'], layout: { 'text-field': ['get', 'point_count_abbreviated'], 'text-size': 12 }, paint: { 'text-color': '#ffffff' } })
       map.addLayer({ id: TREE_LAYER_ID, type: 'circle', source: TREE_SOURCE_ID, filter: ['!', ['has', 'point_count']], paint: { 'circle-color': TREE_CATEGORY_COLOR_EXPRESSION, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 14, 6, 18, 8], 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 } })
-      map.addLayer({ id: SELECTED_TREE_LAYER_ID, type: 'circle', source: TREE_HIGHLIGHT_SOURCE_ID, filter: ['==', ['get', 'selected'], true], paint: { 'circle-color': '#ffffff', 'circle-opacity': 0, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 11, 18, 16], 'circle-stroke-color': '#1f2937', 'circle-stroke-width': 3.5 } })
+      map.addLayer({ id: SELECTED_TREE_LAYER_ID, type: 'circle', source: TREE_HIGHLIGHT_SOURCE_ID, filter: ['==', ['get', 'selected'], true], paint: { 'circle-color': '#1f8f46', 'circle-opacity': 1, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 11, 18, 15], 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 3.5 } })
       map.addLayer({ id: USER_LOCATION_LAYER_ID, type: 'circle', source: USER_LOCATION_SOURCE_ID, paint: { 'circle-color': '#2563eb', 'circle-radius': 8, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 3 } })
       setMapReady(true)
     })
@@ -248,7 +248,6 @@ export function HelsinkiMap() {
     )
     map.easeTo({
       center: visibleSelectedTree.geometry.coordinates,
-      zoom: Math.max(map.getZoom(), 16),
       padding: { top: 96, right: 16, bottom: bottomPadding, left: 16 },
       duration: 320,
     })
@@ -275,7 +274,10 @@ export function HelsinkiMap() {
 
   const focusTree = (tree: HelsinkiTreeFeature) => {
     setSelectedTree(tree)
-    if (tree.geometry) mapRef.current?.easeTo({ center: tree.geometry.coordinates, zoom: Math.max(mapRef.current?.getZoom() ?? 16, 16) })
+    if (tree.geometry && !window.matchMedia(MOBILE_BREAKPOINT_QUERY).matches) {
+      const map = mapRef.current
+      map?.easeTo({ center: tree.geometry.coordinates, zoom: Math.max(map.getZoom(), 16) })
+    }
   }
 
   const toggleSelectedTreeSaved = () => {

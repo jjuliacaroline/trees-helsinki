@@ -21,6 +21,21 @@ function displayValue(value: string | number | null): string {
   return value === null ? UNKNOWN_VALUE : String(value)
 }
 
+function readableCommonName(value: string | null): string {
+  if (value === null) return UNKNOWN_VALUE
+
+  const trimmed = value.trim()
+  if (trimmed === '' || trimmed !== trimmed.toLocaleUpperCase('fi-FI')) {
+    return trimmed
+  }
+
+  const lowerCased = trimmed.toLocaleLowerCase('fi-FI')
+  return lowerCased.replace(
+    /(^|[\s/-])(\p{L})/gu,
+    (_match, separator: string, letter: string) => `${separator}${letter.toLocaleUpperCase('fi-FI')}`,
+  )
+}
+
 function scientificName(tree: HelsinkiTreeFeature): string {
   const parts = [tree.properties.suku, tree.properties.laji].filter(
     (value): value is string => Boolean(value),
@@ -39,7 +54,7 @@ function treeCoordinates(tree: HelsinkiTreeFeature): string {
 }
 
 function BotanicalPlaceholder({ tree }: { tree: HelsinkiTreeFeature }) {
-  const commonName = tree.properties.suomenknimi ?? UNKNOWN_VALUE
+  const commonName = readableCommonName(tree.properties.suomenknimi)
   const markerStyle = TREE_MARKER_STYLES[getTreeMapCategory(tree)]
   const initial = commonName.trim().charAt(0).toLocaleUpperCase('fi-FI') || 'P'
 
@@ -116,7 +131,7 @@ export function MobileTreeDetailsSheet({
         <header className="mobile-tree-details-sheet__hero">
           <BotanicalPlaceholder tree={tree} />
           <div className="mobile-tree-details-sheet__identity">
-            <h2>{properties.suomenknimi ?? UNKNOWN_VALUE}</h2>
+            <h2>{readableCommonName(properties.suomenknimi)}</h2>
             <p>{scientificName(tree)}</p>
           </div>
         </header>
