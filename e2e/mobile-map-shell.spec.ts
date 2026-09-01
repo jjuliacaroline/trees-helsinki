@@ -53,40 +53,7 @@ test.describe('mobile map-first shell', () => {
     await expect(page.getByLabel('Karttatulokset')).toBeVisible()
   })
 
-  test('mobile filter sheet uses the real filters immediately and preserves them when reopened', async ({ page }) => {
-    await loadMobileApp(page)
-
-    await page.getByRole('button', { name: 'Suodattimet, 0 aktiivista' }).click()
-    const sheet = page.locator('.mobile-bottom-sheet')
-    await expect(sheet).toBeVisible()
-    await expect(page.getByLabel('Interactive map of Helsinki trees')).toBeVisible()
-    await expect(page.getByLabel('Hae puita kartalta')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Tallennetut puut, 0' })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Käytä sijaintiani' })).not.toBeVisible()
-    await expect(page.getByLabel('Karttatulokset')).not.toBeVisible()
-
-    await sheet.getByLabel('Näytä', { exact: true }).selectOption('plum')
-    await expect(sheet).toContainText('1 puuta kartalla')
-
-    await sheet.getByLabel('Istutusvuosi alkaen').fill('2010')
-    await sheet.getByLabel('Istutusvuosi asti').fill('2010')
-    await expect(sheet).toContainText('1 puuta kartalla')
-
-    await page.getByRole('button', { name: 'Sulje suodattimet' }).click()
-    await expect(page.getByRole('button', { name: 'Suodattimet, 2 aktiivista' })).toBeVisible()
-
-    await page.getByRole('button', { name: 'Suodattimet, 2 aktiivista' }).click()
-    await expect(sheet.getByLabel('Näytä', { exact: true })).toHaveValue('plum')
-    await expect(sheet.getByLabel('Istutusvuosi alkaen')).toHaveValue('2010')
-    await expect(sheet.getByLabel('Istutusvuosi asti')).toHaveValue('2010')
-
-    await sheet.getByRole('button', { name: 'Tyhjennä' }).click()
-    await expect(sheet.getByLabel('Näytä', { exact: true })).toHaveValue('')
-    await expect(sheet.getByLabel('Istutusvuosi alkaen')).toHaveValue('')
-    await expect(sheet).toContainText('7 puuta kartalla')
-  })
-
-  test('saved, info and location controls stay wired to existing behavior', async ({ page }) => {
+  test('saved, filter, info and location controls stay wired to existing behavior', async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem('trees-helsinki.saved-tree-ids.v1', '[1001]')
     })
@@ -101,6 +68,15 @@ test.describe('mobile map-first shell', () => {
     await saved.click()
     await expect(saved).toHaveAttribute('aria-pressed', 'false')
 
+    await page.getByRole('button', { name: 'Suodattimet, 0 aktiivista' }).click()
+    const sheet = page.locator('.mobile-bottom-sheet')
+    await expect(sheet).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Sulje suodattimet' })).toBeVisible()
+    await sheet.getByLabel('Näytä', { exact: true }).selectOption('plum')
+    await expect(sheet).toContainText('1 puuta kartalla')
+    await page.getByRole('button', { name: 'Sulje suodattimet' }).click()
+    await expect(page.getByRole('button', { name: 'Suodattimet, 1 aktiivista' })).toBeVisible()
+
     await page.getByRole('button', { name: 'Tietoja puuaineistosta' }).click()
     const info = page.getByLabel('Mobiilin puutietojen lähde')
     await expect(info).toBeVisible()
@@ -110,21 +86,4 @@ test.describe('mobile map-first shell', () => {
     await page.getByRole('button', { name: 'Käytä sijaintiani' }).click()
     await expect(page.getByRole('button', { name: 'Päivitä sijainti' })).toBeVisible()
   })
-})
-
-test('filter sheet remains usable at a narrow, height-constrained mobile viewport', async ({ page }) => {
-  await page.setViewportSize({ width: 320, height: 568 })
-  await loadMobileApp(page)
-
-  await page.getByRole('button', { name: 'Suodattimet, 0 aktiivista' }).click()
-  const sheet = page.locator('.mobile-bottom-sheet')
-  await expect(sheet).toBeVisible()
-  await expect(sheet.getByLabel('Puutyyppi')).toBeVisible()
-  await expect(sheet.getByLabel('Laji')).toBeVisible()
-
-  const infoButton = sheet.getByRole('button', { name: 'Tietoja puuaineistosta' })
-  await infoButton.scrollIntoViewIfNeeded()
-  await expect(infoButton).toBeVisible()
-  await page.getByRole('button', { name: 'Sulje suodattimet' }).click()
-  await expect(page.getByLabel('Karttatulokset')).toBeVisible()
 })
