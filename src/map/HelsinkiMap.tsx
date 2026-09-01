@@ -21,6 +21,7 @@ import {
 } from '../data/treeRegistry'
 import { MobileFilterSheet } from './MobileFilterSheet'
 import { MobileMapControls } from './MobileMapControls'
+import { MobileTreeDetailsSheet } from './MobileTreeDetailsSheet'
 import { TreeDataInfo } from './TreeDataInfo'
 import { TreeDetailsPanel } from './TreeDetailsPanel'
 import {
@@ -52,6 +53,8 @@ const CLUSTER_COUNT_LAYER_ID = 'tree-cluster-count'
 const SELECTED_TREE_LAYER_ID = 'selected-tree-highlight'
 const TREE_LAYER_ID = 'tree-points'
 const USER_LOCATION_LAYER_ID = 'user-location-point'
+const MOBILE_BREAKPOINT_QUERY = '(max-width: 760px)'
+const MOBILE_SELECTED_SHEET_MAX_HEIGHT = 430
 
 function countActiveFilters(filters: TreeFilters): number {
   return [
@@ -228,6 +231,29 @@ export function HelsinkiMap() {
     if (selectedTree && !displayedTrees.some((tree) => tree.properties.id === selectedTree.properties.id)) setSelectedTree(null)
   }, [displayedTrees, selectedTree])
 
+  useEffect(() => {
+    const map = mapRef.current
+    if (!mapReady || !map || !window.matchMedia(MOBILE_BREAKPOINT_QUERY).matches) return
+
+    if (!visibleSelectedTree?.geometry) {
+      map.easeTo({ padding: { top: 0, right: 0, bottom: 0, left: 0 }, duration: 220 })
+      return
+    }
+
+    setMobileFiltersOpen(false)
+    setMobileInfoOpen(false)
+    const bottomPadding = Math.min(
+      Math.round(window.innerHeight * 0.46),
+      MOBILE_SELECTED_SHEET_MAX_HEIGHT,
+    )
+    map.easeTo({
+      center: visibleSelectedTree.geometry.coordinates,
+      zoom: Math.max(map.getZoom(), 16),
+      padding: { top: 96, right: 16, bottom: bottomPadding, left: 16 },
+      duration: 320,
+    })
+  }, [mapReady, visibleSelectedTree])
+
   const requestLocation = () => {
     if (!navigator.geolocation) {
       setLocationStatus('unavailable')
@@ -258,7 +284,7 @@ export function HelsinkiMap() {
   }
 
   return (
-    <div className={`map-shell${mobileFiltersOpen ? ' is-mobile-filter-open' : ''}`}>
+    <div className={`map-shell${mobileFiltersOpen ? ' is-mobile-filter-open' : ''}${visibleSelectedTree ? ' is-mobile-tree-selected' : ''}`}>
       <div ref={containerRef} className="map" aria-label="Interactive map of Helsinki trees" />
       <MobileMapControls
         search={filters.search}
@@ -323,6 +349,16 @@ export function HelsinkiMap() {
           </div>
           <TreeDataInfo />
         </section>
+      ) : null}
+      {visibleSelectedTree ? (
+        <MobileTreeDetailsSheet
+          key={visibleSelectedTree.properties.id}
+          tree={visibleSelectedTree}
+          isSaved={savedTreeIds.includes(visibleSelectedTree.properties.id)}
+          distanceMeters={selectedTreeDistance}
+          onClose={() => setSelectedTree(null)}
+          onToggleSaved={toggleSelectedTreeSaved}
+        />
       ) : null}
       {visibleSelectedTree ? (
         <TreeDetailsPanel
