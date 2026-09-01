@@ -19,6 +19,7 @@ import {
   normalizeTreeFeatureCollection,
   type HelsinkiTreeFeature,
 } from '../data/treeRegistry'
+import { MobileFilterSheet } from './MobileFilterSheet'
 import { MobileMapControls } from './MobileMapControls'
 import { TreeDataInfo } from './TreeDataInfo'
 import { TreeDetailsPanel } from './TreeDetailsPanel'
@@ -257,7 +258,7 @@ export function HelsinkiMap() {
   }
 
   return (
-    <div className="map-shell">
+    <div className={`map-shell${mobileFiltersOpen ? ' is-mobile-filter-open' : ''}`}>
       <div ref={containerRef} className="map" aria-label="Interactive map of Helsinki trees" />
       <MobileMapControls
         search={filters.search}
@@ -267,6 +268,7 @@ export function HelsinkiMap() {
         savedCount={savedTrees.length}
         savedActive={viewMode === 'saved'}
         activeFilterCount={activeFilterCount}
+        filtersOpen={mobileFiltersOpen}
         locationStatus={locationStatus}
         onSearchChange={(search) => setFilters((current) => ({ ...current, search }))}
         onToggleSaved={() => setViewMode((current) => current === 'saved' ? 'browse' : 'saved')}
@@ -280,14 +282,7 @@ export function HelsinkiMap() {
           setMobileInfoOpen((current) => !current)
         }}
       />
-      <div className={`tree-filter-panel-host${mobileFiltersOpen ? ' is-mobile-open' : ''}`}>
-        <button
-          type="button"
-          className="tree-filter-panel-host__close"
-          onClick={() => setMobileFiltersOpen(false)}
-        >
-          Sulje suodattimet
-        </button>
+      <div className="tree-filter-panel-host">
         <TreeFilterPanel
           filters={filters}
           options={filterOptions}
@@ -305,6 +300,21 @@ export function HelsinkiMap() {
           onSelectTree={focusTree}
         />
       </div>
+      <MobileFilterSheet
+        open={mobileFiltersOpen}
+        filters={filters}
+        options={filterOptions}
+        resultCount={filteredTrees.length}
+        loading={loading}
+        error={loadError}
+        onChange={setFilters}
+        onReset={() => setFilters({ ...EMPTY_TREE_FILTERS })}
+        onClose={() => setMobileFiltersOpen(false)}
+        onOpenInfo={() => {
+          setMobileFiltersOpen(false)
+          setMobileInfoOpen(true)
+        }}
+      />
       {mobileInfoOpen ? (
         <section className="mobile-map-info" aria-label="Mobiilin puutietojen lähde">
           <div className="mobile-map-info__header">

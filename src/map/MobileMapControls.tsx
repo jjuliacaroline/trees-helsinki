@@ -8,6 +8,7 @@ interface MobileMapControlsProps {
   savedCount: number
   savedActive: boolean
   activeFilterCount: number
+  filtersOpen: boolean
   locationStatus: LocationStatus
   onSearchChange: (value: string) => void
   onToggleSaved: () => void
@@ -86,6 +87,7 @@ export function MobileMapControls({
   savedCount,
   savedActive,
   activeFilterCount,
+  filtersOpen,
   locationStatus,
   onSearchChange,
   onToggleSaved,
@@ -94,7 +96,7 @@ export function MobileMapControls({
   onOpenInfo,
 }: MobileMapControlsProps) {
   return (
-    <div className="mobile-map-controls" aria-label="Mobiilikartan toiminnot">
+    <div className={`mobile-map-controls${filtersOpen ? ' is-filter-sheet-open' : ''}`} aria-label="Mobiilikartan toiminnot">
       <div className="mobile-map-controls__top">
         <label className="mobile-map-controls__search">
           <span className="sr-only">Hae puita kartalta</span>
@@ -134,6 +136,7 @@ export function MobileMapControls({
         className="mobile-map-controls__filters"
         onClick={onOpenFilters}
         aria-label={`Suodattimet, ${activeFilterCount} aktiivista`}
+        aria-expanded={filtersOpen}
       >
         <FilterIcon />
         <span>Suodattimet</span>

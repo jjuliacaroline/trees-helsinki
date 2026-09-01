@@ -69,10 +69,13 @@ test.describe('mobile map-first shell', () => {
     await expect(saved).toHaveAttribute('aria-pressed', 'false')
 
     await page.getByRole('button', { name: 'Suodattimet, 0 aktiivista' }).click()
+    const sheet = page.locator('.mobile-bottom-sheet')
+    await expect(sheet).toBeVisible()
     await expect(page.getByRole('button', { name: 'Sulje suodattimet' })).toBeVisible()
-    await page.getByLabel('Näytä', { exact: true }).selectOption('plum')
-    await expect(page.getByRole('button', { name: 'Suodattimet, 1 aktiivista' })).toBeVisible()
+    await sheet.getByLabel('Näytä', { exact: true }).selectOption('plum')
+    await expect(sheet).toContainText('1 puuta kartalla')
     await page.getByRole('button', { name: 'Sulje suodattimet' }).click()
+    await expect(page.getByRole('button', { name: 'Suodattimet, 1 aktiivista' })).toBeVisible()
 
     await page.getByRole('button', { name: 'Tietoja puuaineistosta' }).click()
     const info = page.getByLabel('Mobiilin puutietojen lähde')
