@@ -15,7 +15,7 @@ async function selectPlumFromMap(page: Page) {
   await expect(page.getByLabel('Karttatulokset')).toContainText('1 puuta kartalla')
 
   const canvas = page.locator('.maplibregl-canvas')
-  const sheet = page.getByLabel('Valitun puun tiedot')
+  const sheet = page.getByRole('region', { name: 'Valitun puun tiedot' })
   await expect(async () => {
     const box = await canvas.boundingBox()
     expect(box).not.toBeNull()
