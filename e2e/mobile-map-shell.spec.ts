@@ -10,6 +10,23 @@ async function loadMobileApp(page: Page) {
   await expect(page.getByLabel('Karttatulokset')).toContainText('7 puuta kartalla')
 }
 
+async function selectPlumFromMap(page: Page) {
+  await page.getByLabel('Hae puita kartalta').fill('Luumu')
+  await expect(page.getByLabel('Karttatulokset')).toContainText('1 puuta kartalla')
+
+  const canvas = page.locator('.maplibregl-canvas')
+  const sheet = page.getByRole('region', { name: 'Valitun puun tiedot' })
+  await expect(async () => {
+    const box = await canvas.boundingBox()
+    expect(box).not.toBeNull()
+    if (!box) return
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+    expect(await sheet.isVisible()).toBe(true)
+  }).toPass({ timeout: 5_000 })
+
+  return sheet
+}
+
 test.describe('mobile map-first shell', () => {
   test.use({ viewport: { width: 390, height: 844 } })
 
@@ -27,30 +44,77 @@ test.describe('mobile map-first shell', () => {
     await expect(page.getByLabel('Karttatulokset')).toContainText('1 puuta kartalla')
   })
 
-  test('selected tree details do not overlap lower mobile map controls', async ({ page }) => {
+  test('selected tree opens the approved contextual sheet with real data and existing actions', async ({ page }) => {
     await loadMobileApp(page)
-    await page.getByLabel('Hae puita kartalta').fill('Luumu')
-    await expect(page.getByLabel('Karttatulokset')).toContainText('1 puuta kartalla')
+    const sheet = await selectPlumFromMap(page)
+
+    await expect(sheet.getByRole('heading', { name: 'Luumu' })).toBeVisible()
+    await expect(sheet).toContainText('Prunus domestica')
+    await expect(sheet).toContainText('2010')
+    await expect(sheet.getByLabel(/Kasvitieteellinen kuvitus lajille Luumu/)).toBeVisible()
+    await expect(sheet).not.toContainText('päästä')
+
+    await expect(page.getByLabel('Hae puita kartalta')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Tallennetut puut, 0' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Suodattimet, 0 aktiivista' })).not.toBeVisible()
+    await expect(page.getByLabel('Karttatulokset')).not.toBeVisible()
+    await expect(page.getByRole('button', { name: 'Käytä sijaintiani' })).toBeVisible()
+    await expect(page.locator('.maplibregl-ctrl-top-right')).toBeVisible()
+    await expect(page.getByLabel('Selected tree details')).not.toBeVisible()
+
+    await sheet.getByRole('button', { name: 'Tallenna' }).click()
+    await expect(sheet.getByRole('button', { name: 'Tallennettu' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Tallennetut puut, 1' })).toBeVisible()
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('trees-helsinki.saved-tree-ids.v1'))).toBe('[1001]')
+
+    await sheet.getByRole('button', { name: 'Näytä kaikki tiedot' }).click()
+    const fullDetails = sheet.getByLabel('Kaikki puun tiedot')
+    await expect(fullDetails).toContainText('TEST-PLUM')
+    await expect(fullDetails).toContainText('24.938400, 60.169900')
+    await expect(fullDetails).toContainText('Helsinki')
+
+    await page.getByRole('button', { name: 'Sulje valitun puun tiedot' }).click()
+    await expect(page.getByRole('button', { name: 'Suodattimet, 0 aktiivista' })).toBeVisible()
+    await expect(page.getByLabel('Karttatulokset')).toBeVisible()
+  })
+
+  test('selected tree shows distance only after valid user location is available', async ({ page }) => {
+    await page.context().grantPermissions(['geolocation'])
+    await page.context().setGeolocation({ longitude: 24.9384, latitude: 60.1699 })
+    await loadMobileApp(page)
+
+    await page.getByRole('button', { name: 'Käytä sijaintiani' }).click()
+    await expect(page.getByRole('button', { name: 'Päivitä sijainti' })).toBeVisible()
+
+    const sheet = await selectPlumFromMap(page)
+    await expect(sheet).toContainText('0 m päästä')
+  })
+
+  test('keeps the selected tree focused when location is requested after selection', async ({ page }) => {
+    await page.context().grantPermissions(['geolocation'])
+    await loadMobileApp(page)
+
+    const sheet = await selectPlumFromMap(page)
+    await expect(sheet).toBeVisible()
+
+    await page.context().setGeolocation({ longitude: 25.1, latitude: 60.3 })
+    await page.getByRole('button', { name: 'Käytä sijaintiani' }).click()
+    await expect(page.getByRole('button', { name: 'Päivitä sijainti' })).toBeVisible()
+    await expect(sheet).toContainText(/(?:m|km) päästä/)
+
+    await page.getByRole('button', { name: 'Sulje valitun puun tiedot' }).click()
+    await expect(sheet).not.toBeVisible()
+    await page.waitForTimeout(500)
 
     const canvas = page.locator('.maplibregl-canvas')
-    const details = page.getByLabel('Selected tree details')
     await expect(async () => {
       const box = await canvas.boundingBox()
       expect(box).not.toBeNull()
       if (!box) return
       await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
-      expect(await details.isVisible()).toBe(true)
+      expect(await sheet.isVisible()).toBe(true)
     }).toPass({ timeout: 5_000 })
-
-    await expect(page.getByLabel('Hae puita kartalta')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Suodattimet, 0 aktiivista' })).not.toBeVisible()
-    await expect(page.getByRole('button', { name: 'Käytä sijaintiani' })).not.toBeVisible()
-    await expect(page.getByLabel('Karttatulokset')).not.toBeVisible()
-    await expect(page.locator('.maplibregl-ctrl-top-right')).not.toBeVisible()
-
-    await details.getByRole('button', { name: 'Sulje puun tiedot' }).click()
-    await expect(page.getByRole('button', { name: 'Suodattimet, 0 aktiivista' })).toBeVisible()
-    await expect(page.getByLabel('Karttatulokset')).toBeVisible()
+    await expect(sheet.getByRole('heading', { name: 'Luumu' })).toBeVisible()
   })
 
   test('saved, filter, info and location controls stay wired to existing behavior', async ({ page }) => {

@@ -21,6 +21,7 @@ import {
 } from '../data/treeRegistry'
 import { MobileFilterSheet } from './MobileFilterSheet'
 import { MobileMapControls } from './MobileMapControls'
+import { MobileTreeDetailsSheet } from './MobileTreeDetailsSheet'
 import { TreeDataInfo } from './TreeDataInfo'
 import { TreeDetailsPanel } from './TreeDetailsPanel'
 import {
@@ -52,6 +53,8 @@ const CLUSTER_COUNT_LAYER_ID = 'tree-cluster-count'
 const SELECTED_TREE_LAYER_ID = 'selected-tree-highlight'
 const TREE_LAYER_ID = 'tree-points'
 const USER_LOCATION_LAYER_ID = 'user-location-point'
+const MOBILE_BREAKPOINT_QUERY = '(max-width: 760px)'
+const MOBILE_SELECTED_SHEET_MAX_HEIGHT = 430
 
 function countActiveFilters(filters: TreeFilters): number {
   return [
@@ -164,7 +167,7 @@ export function HelsinkiMap() {
       map.addLayer({ id: CLUSTER_LAYER_ID, type: 'circle', source: TREE_SOURCE_ID, filter: ['has', 'point_count'], paint: { 'circle-color': TREE_DEFAULT_CLUSTER_COLOR_EXPRESSION, 'circle-radius': ['step', ['get', 'point_count'], 18, 100, 24, 750, 30], 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 } })
       map.addLayer({ id: CLUSTER_COUNT_LAYER_ID, type: 'symbol', source: TREE_SOURCE_ID, filter: ['has', 'point_count'], layout: { 'text-field': ['get', 'point_count_abbreviated'], 'text-size': 12 }, paint: { 'text-color': '#ffffff' } })
       map.addLayer({ id: TREE_LAYER_ID, type: 'circle', source: TREE_SOURCE_ID, filter: ['!', ['has', 'point_count']], paint: { 'circle-color': TREE_CATEGORY_COLOR_EXPRESSION, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 14, 6, 18, 8], 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2 } })
-      map.addLayer({ id: SELECTED_TREE_LAYER_ID, type: 'circle', source: TREE_HIGHLIGHT_SOURCE_ID, filter: ['==', ['get', 'selected'], true], paint: { 'circle-color': '#ffffff', 'circle-opacity': 0, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 11, 18, 16], 'circle-stroke-color': '#1f2937', 'circle-stroke-width': 3.5 } })
+      map.addLayer({ id: SELECTED_TREE_LAYER_ID, type: 'circle', source: TREE_HIGHLIGHT_SOURCE_ID, filter: ['==', ['get', 'selected'], true], paint: { 'circle-color': '#1f8f46', 'circle-opacity': 1, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 11, 18, 15], 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 3.5 } })
       map.addLayer({ id: USER_LOCATION_LAYER_ID, type: 'circle', source: USER_LOCATION_SOURCE_ID, paint: { 'circle-color': '#2563eb', 'circle-radius': 8, 'circle-stroke-color': '#ffffff', 'circle-stroke-width': 3 } })
       setMapReady(true)
     })
@@ -216,7 +219,9 @@ export function HelsinkiMap() {
       type: 'FeatureCollection',
       features: userLocation ? [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: userLocation } }] : [],
     } as Parameters<GeoJSONSource['setData']>[0])
-    if (userLocation) mapRef.current?.easeTo({ center: userLocation, zoom: Math.max(mapRef.current?.getZoom() ?? 14, 14) })
+    if (userLocation && !(visibleSelectedTree && window.matchMedia(MOBILE_BREAKPOINT_QUERY).matches)) {
+      mapRef.current?.easeTo({ center: userLocation, zoom: Math.max(mapRef.current?.getZoom() ?? 14, 14) })
+    }
   }, [mapReady, userLocation])
 
   useEffect(() => {
@@ -227,6 +232,28 @@ export function HelsinkiMap() {
   useEffect(() => {
     if (selectedTree && !displayedTrees.some((tree) => tree.properties.id === selectedTree.properties.id)) setSelectedTree(null)
   }, [displayedTrees, selectedTree])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!mapReady || !map || !window.matchMedia(MOBILE_BREAKPOINT_QUERY).matches) return
+
+    if (!visibleSelectedTree?.geometry) {
+      map.easeTo({ padding: { top: 0, right: 0, bottom: 0, left: 0 }, duration: 220 })
+      return
+    }
+
+    setMobileFiltersOpen(false)
+    setMobileInfoOpen(false)
+    const bottomPadding = Math.min(
+      Math.round(window.innerHeight * 0.46),
+      MOBILE_SELECTED_SHEET_MAX_HEIGHT,
+    )
+    map.easeTo({
+      center: visibleSelectedTree.geometry.coordinates,
+      padding: { top: 96, right: 16, bottom: bottomPadding, left: 16 },
+      duration: 320,
+    })
+  }, [mapReady, visibleSelectedTree])
 
   const requestLocation = () => {
     if (!navigator.geolocation) {
@@ -249,7 +276,10 @@ export function HelsinkiMap() {
 
   const focusTree = (tree: HelsinkiTreeFeature) => {
     setSelectedTree(tree)
-    if (tree.geometry) mapRef.current?.easeTo({ center: tree.geometry.coordinates, zoom: Math.max(mapRef.current?.getZoom() ?? 16, 16) })
+    if (tree.geometry && !window.matchMedia(MOBILE_BREAKPOINT_QUERY).matches) {
+      const map = mapRef.current
+      map?.easeTo({ center: tree.geometry.coordinates, zoom: Math.max(map.getZoom(), 16) })
+    }
   }
 
   const toggleSelectedTreeSaved = () => {
@@ -258,7 +288,7 @@ export function HelsinkiMap() {
   }
 
   return (
-    <div className={`map-shell${mobileFiltersOpen ? ' is-mobile-filter-open' : ''}`}>
+    <div className={`map-shell${mobileFiltersOpen ? ' is-mobile-filter-open' : ''}${visibleSelectedTree ? ' is-mobile-tree-selected' : ''}`}>
       <div ref={containerRef} className="map" aria-label="Interactive map of Helsinki trees" />
       <MobileMapControls
         search={filters.search}
@@ -323,6 +353,16 @@ export function HelsinkiMap() {
           </div>
           <TreeDataInfo />
         </section>
+      ) : null}
+      {visibleSelectedTree ? (
+        <MobileTreeDetailsSheet
+          key={visibleSelectedTree.properties.id}
+          tree={visibleSelectedTree}
+          isSaved={savedTreeIds.includes(visibleSelectedTree.properties.id)}
+          distanceMeters={selectedTreeDistance}
+          onClose={() => setSelectedTree(null)}
+          onToggleSaved={toggleSelectedTreeSaved}
+        />
       ) : null}
       {visibleSelectedTree ? (
         <TreeDetailsPanel
