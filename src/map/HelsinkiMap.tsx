@@ -219,7 +219,9 @@ export function HelsinkiMap() {
       type: 'FeatureCollection',
       features: userLocation ? [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: userLocation } }] : [],
     } as Parameters<GeoJSONSource['setData']>[0])
-    if (userLocation) mapRef.current?.easeTo({ center: userLocation, zoom: Math.max(mapRef.current?.getZoom() ?? 14, 14) })
+    if (userLocation && !(visibleSelectedTree && window.matchMedia(MOBILE_BREAKPOINT_QUERY).matches)) {
+      mapRef.current?.easeTo({ center: userLocation, zoom: Math.max(mapRef.current?.getZoom() ?? 14, 14) })
+    }
   }, [mapReady, userLocation])
 
   useEffect(() => {

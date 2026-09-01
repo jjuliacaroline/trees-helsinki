@@ -90,6 +90,33 @@ test.describe('mobile map-first shell', () => {
     await expect(sheet).toContainText('0 m päästä')
   })
 
+  test('keeps the selected tree focused when location is requested after selection', async ({ page }) => {
+    await page.context().grantPermissions(['geolocation'])
+    await loadMobileApp(page)
+
+    const sheet = await selectPlumFromMap(page)
+    await expect(sheet).toBeVisible()
+
+    await page.context().setGeolocation({ longitude: 25.1, latitude: 60.3 })
+    await page.getByRole('button', { name: 'Käytä sijaintiani' }).click()
+    await expect(page.getByRole('button', { name: 'Päivitä sijainti' })).toBeVisible()
+    await expect(sheet).toContainText(/(?:m|km) päästä/)
+
+    await page.getByRole('button', { name: 'Sulje valitun puun tiedot' }).click()
+    await expect(sheet).not.toBeVisible()
+    await page.waitForTimeout(500)
+
+    const canvas = page.locator('.maplibregl-canvas')
+    await expect(async () => {
+      const box = await canvas.boundingBox()
+      expect(box).not.toBeNull()
+      if (!box) return
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+      expect(await sheet.isVisible()).toBe(true)
+    }).toPass({ timeout: 5_000 })
+    await expect(sheet.getByRole('heading', { name: 'Luumu' })).toBeVisible()
+  })
+
   test('saved, filter, info and location controls stay wired to existing behavior', async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem('trees-helsinki.saved-tree-ids.v1', '[1001]')
