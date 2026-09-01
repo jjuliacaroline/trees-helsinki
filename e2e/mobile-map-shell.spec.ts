@@ -57,7 +57,7 @@ test.describe('mobile map-first shell', () => {
     await loadMobileApp(page)
 
     await page.getByRole('button', { name: 'Suodattimet, 0 aktiivista' }).click()
-    const sheet = page.getByRole('region', { name: 'Suodattimet' })
+    const sheet = page.locator('.mobile-bottom-sheet')
     await expect(sheet).toBeVisible()
     await expect(page.getByLabel('Interactive map of Helsinki trees')).toBeVisible()
     await expect(page.getByLabel('Hae puita kartalta')).toBeVisible()
@@ -117,7 +117,7 @@ test('filter sheet remains usable at a narrow, height-constrained mobile viewpor
   await loadMobileApp(page)
 
   await page.getByRole('button', { name: 'Suodattimet, 0 aktiivista' }).click()
-  const sheet = page.getByRole('region', { name: 'Suodattimet' })
+  const sheet = page.locator('.mobile-bottom-sheet')
   await expect(sheet).toBeVisible()
   await expect(sheet.getByLabel('Puutyyppi')).toBeVisible()
   await expect(sheet.getByLabel('Laji')).toBeVisible()
