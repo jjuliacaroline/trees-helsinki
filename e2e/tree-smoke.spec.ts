@@ -108,7 +108,7 @@ test('saved tree ids survive reload and resolve back to the current dataset', as
   const reloadedDetails = page.getByLabel('Selected tree details')
   await expect(reloadedDetails.getByRole('heading', { name: 'Luumu' })).toBeVisible()
   await reloadedDetails.getByRole('button', { name: '♥ Tallennettu' }).click()
-  await expect(page.getByText('Ei tallennettuja puita.')).toBeVisible()
+  await expect(page.getByLabel('Puiden haku ja suodatus').getByText('Ei tallennettuja puita.')).toBeVisible()
 })
 
 test('unavailable geolocation is non-blocking', async ({ page }) => {
