@@ -21,6 +21,7 @@ import {
 } from '../data/treeRegistry'
 import { MobileFilterSheet } from './MobileFilterSheet'
 import { MobileMapControls } from './MobileMapControls'
+import { MobileSavedTreesSheet } from './MobileSavedTreesSheet'
 import { MobileTreeDetailsSheet } from './MobileTreeDetailsSheet'
 import { TreeDataInfo } from './TreeDataInfo'
 import { TreeDetailsPanel } from './TreeDetailsPanel'
@@ -127,6 +128,7 @@ export function HelsinkiMap() {
   const selectedTreeDistance = useMemo(() => userLocation && visibleSelectedTree?.geometry ? distanceMeters(userLocation, visibleSelectedTree.geometry.coordinates) : undefined, [userLocation, visibleSelectedTree])
   const filterOptions = useMemo(() => buildTreeFilterOptions(allTrees, filters.genus, filters.fruitCategory), [allTrees, filters.genus, filters.fruitCategory])
   const activeFilterCount = useMemo(() => countActiveFilters(filters), [filters])
+  const mobileSavedOpen = viewMode === 'saved' && !visibleSelectedTree
   const treesByIdRef = useRef(treesById)
 
   useEffect(() => { treesByIdRef.current = treesById }, [treesById])
@@ -282,13 +284,24 @@ export function HelsinkiMap() {
     }
   }
 
+  const toggleTreeSaved = (treeId: number) => {
+    setSavedTreeIds((current) => toggleSavedTreeId(current, treeId))
+  }
+
   const toggleSelectedTreeSaved = () => {
     if (!visibleSelectedTree) return
-    setSavedTreeIds((current) => toggleSavedTreeId(current, visibleSelectedTree.properties.id))
+    toggleTreeSaved(visibleSelectedTree.properties.id)
+  }
+
+  const toggleMobileSaved = () => {
+    setMobileFiltersOpen(false)
+    setMobileInfoOpen(false)
+    setSelectedTree(null)
+    setViewMode((current) => current === 'saved' ? 'browse' : 'saved')
   }
 
   return (
-    <div className={`map-shell${mobileFiltersOpen ? ' is-mobile-filter-open' : ''}${visibleSelectedTree ? ' is-mobile-tree-selected' : ''}`}>
+    <div className={`map-shell${mobileFiltersOpen ? ' is-mobile-filter-open' : ''}${mobileSavedOpen ? ' is-mobile-saved-open' : ''}${visibleSelectedTree ? ' is-mobile-tree-selected' : ''}`}>
       <div ref={containerRef} className="map" aria-label="Interactive map of Helsinki trees" />
       <MobileMapControls
         search={filters.search}
@@ -301,7 +314,7 @@ export function HelsinkiMap() {
         filtersOpen={mobileFiltersOpen}
         locationStatus={locationStatus}
         onSearchChange={(search) => setFilters((current) => ({ ...current, search }))}
-        onToggleSaved={() => setViewMode((current) => current === 'saved' ? 'browse' : 'saved')}
+        onToggleSaved={toggleMobileSaved}
         onRequestLocation={requestLocation}
         onOpenFilters={() => {
           setMobileInfoOpen(false)
@@ -330,6 +343,17 @@ export function HelsinkiMap() {
           onSelectTree={focusTree}
         />
       </div>
+      <MobileSavedTreesSheet
+        open={mobileSavedOpen}
+        trees={savedTrees}
+        userLocation={userLocation}
+        onBack={() => {
+          setSelectedTree(null)
+          setViewMode('browse')
+        }}
+        onSelectTree={focusTree}
+        onRemoveTree={toggleTreeSaved}
+      />
       <MobileFilterSheet
         open={mobileFiltersOpen}
         filters={filters}
