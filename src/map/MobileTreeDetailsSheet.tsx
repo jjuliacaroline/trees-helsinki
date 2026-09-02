@@ -3,6 +3,7 @@ import { classifyTree } from '../data/treeClassifications'
 import { formatDistance } from '../data/treeProximity'
 import type { HelsinkiTreeFeature } from '../data/treeRegistry'
 import { MobileBottomSheet } from './MobileBottomSheet'
+import { readableCommonName, readableScientificName } from './treeDisplayNames'
 import { getTreeMapCategory } from './treeMapData'
 import { TREE_MARKER_STYLES } from './treeMarkerStyles'
 import './mobileTreeDetailsSheet.css'
@@ -21,28 +22,6 @@ function displayValue(value: string | number | null): string {
   return value === null ? UNKNOWN_VALUE : String(value)
 }
 
-function readableCommonName(value: string | null): string {
-  if (value === null) return UNKNOWN_VALUE
-
-  const trimmed = value.trim()
-  if (trimmed === '' || trimmed !== trimmed.toLocaleUpperCase('fi-FI')) {
-    return trimmed
-  }
-
-  const lowerCased = trimmed.toLocaleLowerCase('fi-FI')
-  return lowerCased.replace(
-    /(^|[\s/-])(\p{L})/gu,
-    (_match, separator: string, letter: string) => `${separator}${letter.toLocaleUpperCase('fi-FI')}`,
-  )
-}
-
-function scientificName(tree: HelsinkiTreeFeature): string {
-  const parts = [tree.properties.suku, tree.properties.laji].filter(
-    (value): value is string => Boolean(value),
-  )
-  return parts.length > 0 ? parts.join(' ') : UNKNOWN_VALUE
-}
-
 function treeLocation(tree: HelsinkiTreeFeature): string {
   return tree.properties.kadunnimi ?? tree.properties.puistonnimi ?? UNKNOWN_VALUE
 }
@@ -54,7 +33,7 @@ function treeCoordinates(tree: HelsinkiTreeFeature): string {
 }
 
 function BotanicalPlaceholder({ tree }: { tree: HelsinkiTreeFeature }) {
-  const commonName = readableCommonName(tree.properties.suomenknimi)
+  const commonName = readableCommonName(tree.properties.suomenknimi) ?? UNKNOWN_VALUE
   const markerStyle = TREE_MARKER_STYLES[getTreeMapCategory(tree)]
   const initial = commonName.trim().charAt(0).toLocaleUpperCase('fi-FI') || 'P'
 
@@ -113,6 +92,8 @@ export function MobileTreeDetailsSheet({
   const [copied, setCopied] = useState(false)
   const classification = classifyTree(tree)
   const coordinates = treeCoordinates(tree)
+  const commonName = readableCommonName(properties.suomenknimi) ?? UNKNOWN_VALUE
+  const latinName = readableScientificName(properties)
 
   const copyCoordinates = async () => {
     if (!tree.geometry || !navigator.clipboard) return
@@ -131,8 +112,8 @@ export function MobileTreeDetailsSheet({
         <header className="mobile-tree-details-sheet__hero">
           <BotanicalPlaceholder tree={tree} />
           <div className="mobile-tree-details-sheet__identity">
-            <h2>{readableCommonName(properties.suomenknimi)}</h2>
-            <p>{scientificName(tree)}</p>
+            <h2>{commonName}</h2>
+            {latinName ? <p>{latinName}</p> : null}
           </div>
         </header>
 
