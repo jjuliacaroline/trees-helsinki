@@ -1,10 +1,35 @@
 import { expect, test, type Page } from '@playwright/test'
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 const treeFixturePath = fileURLToPath(new URL('./fixtures/trees.geojson', import.meta.url))
 
 async function loadMobileApp(page: Page) {
   await page.route('**/data/trees.geojson', (route) => route.fulfill({ path: treeFixturePath, contentType: 'application/json' }))
+  await page.route('https://tiles.openfreemap.org/styles/liberty', (route) => route.fulfill({ json: { version: 8, sources: {}, layers: [] } }))
+  await page.goto('/')
+  await expect(page.getByLabel('Karttatulokset')).toContainText('7 puuta kartalla')
+}
+
+async function loadMobileAppWithTechnicalPlaceholder(page: Page) {
+  await page.route('**/data/trees.geojson', async (route) => {
+    const fixture = JSON.parse(readFileSync(treeFixturePath, 'utf8')) as {
+      features: Array<{
+        properties: {
+          id: number
+          suomenknimi: string | null
+          suku: string | null
+          laji: string | null
+        }
+      }>
+    }
+    const technicalTree = fixture.features.find(({ properties }) => properties.id === 1007)
+    if (!technicalTree) throw new Error('expected placeholder test tree')
+    technicalTree.properties.suomenknimi = 'TunnistamatonLEHTI'
+    technicalTree.properties.suku = 'TunnistamatonLEHTI'
+    technicalTree.properties.laji = 'sp.'
+    await route.fulfill({ json: fixture })
+  })
   await page.route('https://tiles.openfreemap.org/styles/liberty', (route) => route.fulfill({ json: { version: 8, sources: {}, layers: [] } }))
   await page.goto('/')
   await expect(page.getByLabel('Karttatulokset')).toContainText('7 puuta kartalla')
@@ -117,6 +142,121 @@ test.describe('mobile map-first shell', () => {
     await expect(sheet.getByRole('heading', { name: 'Luumu' })).toBeVisible()
   })
 
+  test('saved trees opens as a real-data sheet and can return to the map', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('trees-helsinki.saved-tree-ids.v1', '[1001]')
+    })
+    await loadMobileApp(page)
+
+    await page.getByRole('button', { name: 'Tallennetut puut, 1' }).click()
+    const savedSheet = page.getByRole('region', { name: 'Tallennetut puut' })
+    await expect(savedSheet).toBeVisible()
+    await expect(savedSheet.getByRole('heading', { name: 'Tallennetut (1)' })).toBeVisible()
+    await expect(savedSheet).toContainText('Luumu')
+    await expect(savedSheet).toContainText('Prunus domestica')
+    await expect(savedSheet.locator('.mobile-saved-trees__item')).toHaveCount(1)
+    await expect(page.getByLabel('Karttatulokset')).toContainText('7 puuta kartalla')
+    await expect(savedSheet).not.toContainText('0 m')
+    await expect(page.getByLabel('Hae puita kartalta')).not.toBeVisible()
+
+    await savedSheet.getByRole('button', { name: 'Takaisin' }).click()
+    await expect(savedSheet).not.toBeVisible()
+    await expect(page.getByLabel('Hae puita kartalta')).toBeVisible()
+    await expect(page.getByLabel('Karttatulokset')).toContainText('7 puuta kartalla')
+  })
+
+  test('does not duplicate the scientific fallback name in a saved tree row', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('trees-helsinki.saved-tree-ids.v1', '[1007]')
+    })
+    await page.route('**/data/trees.geojson', async (route) => {
+      const fixture = JSON.parse(readFileSync(treeFixturePath, 'utf8')) as {
+        features: Array<{
+          properties: {
+            id: number
+            suomenknimi: string | null
+          }
+        }>
+      }
+      const scientificOnlyTree = fixture.features.find(({ properties }) => properties.id === 1007)
+      if (!scientificOnlyTree) throw new Error('expected scientific-only test tree')
+      scientificOnlyTree.properties.suomenknimi = null
+      await route.fulfill({ json: fixture })
+    })
+    await page.route('https://tiles.openfreemap.org/styles/liberty', (route) => route.fulfill({ json: { version: 8, sources: {}, layers: [] } }))
+    await page.goto('/')
+    await expect(page.getByLabel('Karttatulokset')).toContainText('7 puuta kartalla')
+
+    await page.getByRole('button', { name: 'Tallennetut puut, 1' }).click()
+    const savedRow = page.getByRole('region', { name: 'Tallennetut puut' }).locator('.mobile-saved-trees__item')
+    const scientificName = savedRow.getByText('Acer platanoides', { exact: true })
+    await expect(scientificName).toBeVisible()
+    await expect(scientificName).toHaveCount(1)
+  })
+
+  test('saved tree distance uses valid user location and selecting a row opens existing details', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('trees-helsinki.saved-tree-ids.v1', '[1001]')
+    })
+    await page.context().grantPermissions(['geolocation'])
+    await page.context().setGeolocation({ longitude: 24.9384, latitude: 60.1699 })
+    await loadMobileApp(page)
+
+    await page.getByRole('button', { name: 'Käytä sijaintiani' }).click()
+    await page.getByRole('button', { name: 'Tallennetut puut, 1' }).click()
+    const savedSheet = page.getByRole('region', { name: 'Tallennetut puut' })
+    await expect(savedSheet).toContainText('0 m')
+
+    await savedSheet.getByRole('button', { name: 'Näytä Luumu kartalla' }).click()
+    const details = page.getByRole('region', { name: 'Valitun puun tiedot' })
+    await expect(details).toBeVisible()
+    await expect(details.getByRole('heading', { name: 'Luumu' })).toBeVisible()
+    await expect(savedSheet).not.toBeVisible()
+
+    await page.getByRole('button', { name: 'Sulje valitun puun tiedot' }).click()
+    await expect(savedSheet).toBeVisible()
+  })
+
+  test('presents technical placeholder names conservatively in saved and details views', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('trees-helsinki.saved-tree-ids.v1', '[1001,1007]')
+    })
+    await loadMobileAppWithTechnicalPlaceholder(page)
+
+    await page.getByRole('button', { name: 'Tallennetut puut, 2' }).click()
+    const savedSheet = page.getByRole('region', { name: 'Tallennetut puut' })
+    await expect(savedSheet).toContainText('Luumu')
+    await expect(savedSheet).toContainText('Prunus domestica')
+    await expect(savedSheet).toContainText('Tunnistamaton lehtipuu')
+    await expect(savedSheet).not.toContainText('TunnistamatonLEHTI')
+    await expect(savedSheet).not.toContainText('TunnistamatonLEHTI sp.')
+
+    await savedSheet.getByRole('button', { name: 'Näytä Tunnistamaton lehtipuu kartalla' }).click()
+    const details = page.getByRole('region', { name: 'Valitun puun tiedot' })
+    await expect(details.getByRole('heading', { name: 'Tunnistamaton lehtipuu' })).toBeVisible()
+    await expect(details.locator('.mobile-tree-details-sheet__identity p')).toHaveCount(0)
+    await expect(details).not.toContainText('TunnistamatonLEHTI')
+    await expect(details).not.toContainText('TunnistamatonLEHTI sp.')
+  })
+
+  test('removing a saved tree updates the list, persisted state and bookmark count immediately', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('trees-helsinki.saved-tree-ids.v1', '[1001]')
+    })
+    await loadMobileApp(page)
+
+    await page.getByRole('button', { name: 'Tallennetut puut, 1' }).click()
+    const savedSheet = page.getByRole('region', { name: 'Tallennetut puut' })
+    await savedSheet.getByRole('button', { name: 'Poista Luumu tallennetuista' }).click()
+
+    await expect(savedSheet.getByRole('heading', { name: 'Tallennetut (0)' })).toBeVisible()
+    await expect(savedSheet).toContainText('Ei tallennettuja puita.')
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('trees-helsinki.saved-tree-ids.v1'))).toBe('[]')
+
+    await savedSheet.getByRole('button', { name: 'Takaisin' }).click()
+    await expect(page.getByRole('button', { name: 'Tallennetut puut, 0' })).toBeVisible()
+  })
+
   test('saved, filter, info and location controls stay wired to existing behavior', async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem('trees-helsinki.saved-tree-ids.v1', '[1001]')
@@ -127,9 +267,9 @@ test.describe('mobile map-first shell', () => {
 
     const saved = page.getByRole('button', { name: 'Tallennetut puut, 1' })
     await saved.click()
-    await expect(saved).toHaveAttribute('aria-pressed', 'true')
-    await expect(page.getByLabel('Karttatulokset')).toContainText('1 puuta kartalla')
-    await saved.click()
+    const savedSheet = page.getByRole('region', { name: 'Tallennetut puut' })
+    await expect(savedSheet).toBeVisible()
+    await savedSheet.getByRole('button', { name: 'Takaisin' }).click()
     await expect(saved).toHaveAttribute('aria-pressed', 'false')
 
     await page.getByRole('button', { name: 'Suodattimet, 0 aktiivista' }).click()
