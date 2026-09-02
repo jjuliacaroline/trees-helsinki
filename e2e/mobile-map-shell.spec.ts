@@ -117,6 +117,68 @@ test.describe('mobile map-first shell', () => {
     await expect(sheet.getByRole('heading', { name: 'Luumu' })).toBeVisible()
   })
 
+  test('saved trees opens as a real-data sheet and can return to the map', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('trees-helsinki.saved-tree-ids.v1', '[1001]')
+    })
+    await loadMobileApp(page)
+
+    await page.getByRole('button', { name: 'Tallennetut puut, 1' }).click()
+    const savedSheet = page.getByRole('region', { name: 'Tallennetut puut' })
+    await expect(savedSheet).toBeVisible()
+    await expect(savedSheet.getByRole('heading', { name: 'Tallennetut (1)' })).toBeVisible()
+    await expect(savedSheet).toContainText('Luumu')
+    await expect(savedSheet).toContainText('Prunus domestica')
+    await expect(savedSheet).not.toContainText('0 m')
+    await expect(page.getByLabel('Hae puita kartalta')).not.toBeVisible()
+
+    await savedSheet.getByRole('button', { name: 'Takaisin' }).click()
+    await expect(savedSheet).not.toBeVisible()
+    await expect(page.getByLabel('Hae puita kartalta')).toBeVisible()
+    await expect(page.getByLabel('Karttatulokset')).toContainText('7 puuta kartalla')
+  })
+
+  test('saved tree distance uses valid user location and selecting a row opens existing details', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('trees-helsinki.saved-tree-ids.v1', '[1001]')
+    })
+    await page.context().grantPermissions(['geolocation'])
+    await page.context().setGeolocation({ longitude: 24.9384, latitude: 60.1699 })
+    await loadMobileApp(page)
+
+    await page.getByRole('button', { name: 'Käytä sijaintiani' }).click()
+    await page.getByRole('button', { name: 'Tallennetut puut, 1' }).click()
+    const savedSheet = page.getByRole('region', { name: 'Tallennetut puut' })
+    await expect(savedSheet).toContainText('0 m')
+
+    await savedSheet.getByRole('button', { name: 'Näytä Luumu kartalla' }).click()
+    const details = page.getByRole('region', { name: 'Valitun puun tiedot' })
+    await expect(details).toBeVisible()
+    await expect(details.getByRole('heading', { name: 'Luumu' })).toBeVisible()
+    await expect(savedSheet).not.toBeVisible()
+
+    await page.getByRole('button', { name: 'Sulje valitun puun tiedot' }).click()
+    await expect(savedSheet).toBeVisible()
+  })
+
+  test('removing a saved tree updates the list, persisted state and bookmark count immediately', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('trees-helsinki.saved-tree-ids.v1', '[1001]')
+    })
+    await loadMobileApp(page)
+
+    await page.getByRole('button', { name: 'Tallennetut puut, 1' }).click()
+    const savedSheet = page.getByRole('region', { name: 'Tallennetut puut' })
+    await savedSheet.getByRole('button', { name: 'Poista Luumu tallennetuista' }).click()
+
+    await expect(savedSheet.getByRole('heading', { name: 'Tallennetut (0)' })).toBeVisible()
+    await expect(savedSheet).toContainText('Ei tallennettuja puita.')
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('trees-helsinki.saved-tree-ids.v1'))).toBe('[]')
+
+    await savedSheet.getByRole('button', { name: 'Takaisin' }).click()
+    await expect(page.getByRole('button', { name: 'Tallennetut puut, 0' })).toBeVisible()
+  })
+
   test('saved, filter, info and location controls stay wired to existing behavior', async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem('trees-helsinki.saved-tree-ids.v1', '[1001]')
@@ -127,9 +189,9 @@ test.describe('mobile map-first shell', () => {
 
     const saved = page.getByRole('button', { name: 'Tallennetut puut, 1' })
     await saved.click()
-    await expect(saved).toHaveAttribute('aria-pressed', 'true')
-    await expect(page.getByLabel('Karttatulokset')).toContainText('1 puuta kartalla')
-    await saved.click()
+    const savedSheet = page.getByRole('region', { name: 'Tallennetut puut' })
+    await expect(savedSheet).toBeVisible()
+    await savedSheet.getByRole('button', { name: 'Takaisin' }).click()
     await expect(saved).toHaveAttribute('aria-pressed', 'false')
 
     await page.getByRole('button', { name: 'Suodattimet, 0 aktiivista' }).click()
