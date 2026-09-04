@@ -65,7 +65,7 @@ jobs:
         run: npm ci
 
       - name: Generate Linux visual baselines
-        run: npm run test:e2e -- --update-snapshots e2e/mobile-visual-regression.spec.ts
+        run: npm run test:e2e -- e2e/mobile-visual-regression.spec.ts --update-snapshots=all
 
       - name: Commit generated visual baselines
         if: github.event_name == 'pull_request' && github.head_ref == 'issue-43-mobile-ui-regression-tests'
