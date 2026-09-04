@@ -57,8 +57,6 @@ async function expectStableMobileScreenshot(page: Page, name: string) {
   await expect(page).toHaveScreenshot(name, {
     animations: 'disabled',
     caret: 'hide',
-    mask: [mapCanvas],
-    maskColor: '#e5e7eb',
   })
 }
 
