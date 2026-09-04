@@ -3,9 +3,15 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 const treeFixturePath = fileURLToPath(new URL('./fixtures/trees.geojson', import.meta.url))
+const metadataFixturePath = fileURLToPath(
+  new URL('./fixtures/tree-metadata.json', import.meta.url),
+)
 
 async function loadMobileApp(page: Page) {
   await page.route('**/data/trees.geojson', (route) => route.fulfill({ path: treeFixturePath, contentType: 'application/json' }))
+  await page.route('**/data/generated/tree-metadata.json', (route) =>
+    route.fulfill({ path: metadataFixturePath, contentType: 'application/json' }),
+  )
   await page.route('https://tiles.openfreemap.org/styles/liberty', (route) => route.fulfill({ json: { version: 8, sources: {}, layers: [] } }))
   await page.goto('/')
   await expect(page.getByLabel('Karttatulokset')).toContainText('7 puuta kartalla')
@@ -67,6 +73,34 @@ test.describe('mobile map-first shell', () => {
 
     await page.getByLabel('Hae puita kartalta').fill('Luumu')
     await expect(page.getByLabel('Karttatulokset')).toContainText('1 puuta kartalla')
+  })
+
+  test('opens mobile Data Info with source metadata and closes', async ({ page }) => {
+    await loadMobileApp(page)
+
+    await page.getByRole('button', { name: 'Tietoja puuaineistosta' }).click()
+
+    const info = page.getByRole('region', { name: 'Mobiilin puutietojen lähde' })
+    await expect(info).toBeVisible()
+    await expect(info.getByRole('heading', { name: 'Tietoja puuaineistosta' })).toBeVisible()
+    await expect(
+      info.getByRole('link', { name: 'Helsingin kaupungin puurekisteri' }),
+    ).toHaveAttribute(
+      'href',
+      'https://hri.fi/data/en_GB/dataset/helsingin-kaupungin-puurekisteri',
+    )
+    await expect(info.getByRole('link', { name: 'CC BY 4.0' })).toHaveAttribute(
+      'href',
+      'https://creativecommons.org/licenses/by/4.0/',
+    )
+    await expect(info).toContainText('Snapshot muodostettu')
+    await expect(info).toContainText('25.8.2026')
+    await expect(info).toContainText('Lähdedata päivitetty')
+    await expect(info).toContainText('1.8.2026')
+    await expect(info).toContainText('Rekisteri ei kata kaikkia Helsingin puita')
+
+    await page.getByRole('button', { name: 'Sulje puuaineiston tiedot' }).click()
+    await expect(info).not.toBeVisible()
   })
 
   test('selected tree opens the approved contextual sheet with real data and existing actions', async ({ page }) => {
