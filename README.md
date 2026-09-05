@@ -9,7 +9,7 @@ The application uses React, TypeScript, Vite, and MapLibre GL JS. It is a static
 
 ## Project status
 
-The current application includes the map experience, source-backed tree data, local saved trees, browser-based nearby-tree lookup, and automated GitHub Pages deployment with a daily production data refresh.
+The current application includes the map experience, source-backed tree data, local saved trees, browser-based nearby-tree lookup, and automated GitHub Pages deployment with a monthly production data refresh.
 
 ## Features
 
@@ -76,7 +76,7 @@ Pull-request validation and production deployment are deliberately separate.
 
 `.github/workflows/ci.yml` runs deterministic code validation for pull requests and pushes to `main`. It installs dependencies, runs type checks and unit tests, executes Playwright smoke tests against committed fixture data, and builds the application. Normal CI does not fetch the live Helsinki WFS service, so pull requests are not coupled to upstream data availability.
 
-`.github/workflows/deploy.yml` owns production data refresh and GitHub Pages publishing. It runs on pushes to `main`, on a daily schedule, and through manual `workflow_dispatch`. The production build job:
+`.github/workflows/deploy.yml` owns production data refresh and GitHub Pages publishing. It runs on pushes to `main`, on a monthly schedule, and through manual `workflow_dispatch`. The production build job:
 
 1. installs dependencies and runs the repository checks and tests;
 2. fetches and validates the current Helsinki tree registry with `npm run data:fetch`;
@@ -87,7 +87,7 @@ A separate deployment job depends on the build job and publishes only that compl
 
 Before the first deployment, configure the repository once in **Settings → Pages → Build and deployment → Source** and select **GitHub Actions**. The workflow then uses the repository `GITHUB_TOKEN`; no personal access token or deployment secret is needed.
 
-The scheduled refresh produces deployment artifacts only. It does not create a daily Git commit containing the generated tree dataset.
+The scheduled refresh produces deployment artifacts only. It does not create a monthly Git commit containing the generated tree dataset.
 
 For local development, run `npm run data:fetch` when you need a fresh live dataset. The normal Vite development server continues to use the root base path rather than the GitHub Pages repository path.
 
