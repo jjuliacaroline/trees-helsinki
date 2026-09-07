@@ -162,11 +162,22 @@ export function HelsinkiMap() {
   useEffect(() => {
     if (!containerRef.current) return
     setMapReady(false)
-    const map = new Map({ container: containerRef.current, style: OPENFREEMAP_STYLE, center: HELSINKI_CENTER, zoom: 11.5 })
+    const map = new Map({
+      container: containerRef.current,
+      style: OPENFREEMAP_STYLE,
+      center: HELSINKI_CENTER,
+      zoom: 11.5,
+    })
     mapRef.current = map
     map.addControl(new NavigationControl(), 'top-right')
 
     map.on('load', () => {
+      const attributionControl = containerRef.current?.querySelector<HTMLElement>('.maplibregl-ctrl-attrib.maplibregl-compact')
+      if (attributionControl) {
+        attributionControl.removeAttribute('open')
+        attributionControl.classList.remove('maplibregl-compact-show')
+      }
+
       map.addSource(TREE_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, cluster: true, clusterMaxZoom: 14, clusterRadius: 50, clusterProperties: TREE_CLUSTER_PROPERTIES })
       map.addSource(TREE_HIGHLIGHT_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
       map.addSource(USER_LOCATION_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
@@ -390,7 +401,14 @@ export function HelsinkiMap() {
           tree={visibleSelectedTree}
           isSaved={savedTreeIds.includes(visibleSelectedTree.properties.id)}
           distanceMeters={selectedTreeDistance}
-          onClose={() => setSelectedTree(null)}
+          onClose={() => {
+            setSelectedTree(null)
+            if (mobileSavedOpen) {
+              setMobileSavedOpen(false)
+              setViewMode('browse')
+            }
+          }}
+          onBack={mobileSavedOpen ? () => setSelectedTree(null) : undefined}
           onToggleSaved={toggleSelectedTreeSaved}
         />
       ) : null}

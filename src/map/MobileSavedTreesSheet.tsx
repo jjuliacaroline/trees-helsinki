@@ -59,14 +59,18 @@ export function MobileSavedTreesSheet({
   onRemoveTree,
 }: MobileSavedTreesSheetProps) {
   return (
-    <MobileBottomSheet open={open} ariaLabel="Tallennetut puut" onClose={onBack}>
+    <MobileBottomSheet open={open} ariaLabel="Tallennetut puut" onClose={onBack} showHandle={false}>
       <section className="mobile-saved-trees">
         <header className="mobile-saved-trees__header">
-          <button type="button" className="mobile-saved-trees__back" onClick={onBack}>
-            <span aria-hidden="true">‹</span>
-            Takaisin
-          </button>
           <h2>Tallennetut ({trees.length.toLocaleString('fi-FI')})</h2>
+          <button
+            type="button"
+            className="mobile-saved-trees__close"
+            onClick={onBack}
+            aria-label="Sulje tallennetut puut"
+          >
+            <span aria-hidden="true">×</span>
+          </button>
         </header>
 
         {trees.length === 0 ? (

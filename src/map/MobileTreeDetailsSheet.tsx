@@ -15,6 +15,7 @@ interface MobileTreeDetailsSheetProps {
   isSaved: boolean
   distanceMeters?: number
   onClose: () => void
+  onBack?: () => void
   onToggleSaved: () => void
 }
 
@@ -72,6 +73,15 @@ function SaveIcon() {
   )
 }
 
+function BackIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m15 5-7 7 7 7" />
+      <path d="M8 12h12" />
+    </svg>
+  )
+}
+
 function ChevronIcon({ expanded }: { expanded: boolean }) {
   return (
     <svg className={expanded ? 'is-expanded' : ''} viewBox="0 0 24 24" aria-hidden="true">
@@ -85,6 +95,7 @@ export function MobileTreeDetailsSheet({
   isSaved,
   distanceMeters,
   onClose,
+  onBack,
   onToggleSaved,
 }: MobileTreeDetailsSheetProps) {
   const { properties } = tree
@@ -107,8 +118,18 @@ export function MobileTreeDetailsSheet({
   }
 
   return (
-    <MobileBottomSheet open ariaLabel="Valitun puun tiedot" onClose={onClose}>
+    <MobileBottomSheet open ariaLabel="Valitun puun tiedot" onClose={onClose} showHandle={!onBack}>
       <article className="mobile-tree-details-sheet">
+        {onBack ? (
+          <nav className="mobile-tree-details-sheet__navigation" aria-label="Puun tietojen navigointi">
+            <button type="button" onClick={onBack} aria-label="Takaisin tallennettuihin puihin">
+              <BackIcon />
+            </button>
+            <button type="button" onClick={onClose} aria-label="Sulje valitun puun tiedot">
+              <span aria-hidden="true">×</span>
+            </button>
+          </nav>
+        ) : null}
         <header className="mobile-tree-details-sheet__hero">
           <BotanicalPlaceholder tree={tree} />
           <div className="mobile-tree-details-sheet__identity">

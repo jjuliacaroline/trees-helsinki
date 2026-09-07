@@ -131,33 +131,34 @@ export function MobileMapControls({
         <LocationIcon />
       </button>
 
-      <button
-        type="button"
-        className="mobile-map-controls__filters"
-        onClick={onOpenFilters}
-        aria-label={`Suodattimet, ${activeFilterCount} aktiivista`}
-        aria-expanded={filtersOpen}
-      >
-        <FilterIcon />
-        <span>Suodattimet</span>
-        {activeFilterCount > 0 ? <span className="mobile-map-controls__filter-count">{activeFilterCount}</span> : null}
-      </button>
+      <div className="mobile-map-controls__bottom">
+        <section className="mobile-map-controls__peek" aria-label="Karttatulokset">
+          <p className={loading || error ? 'is-message' : 'is-count'} role="status" aria-live="polite">
+            {loading ? (
+              'Ladataan puutietoja…'
+            ) : error ? (
+              error
+            ) : (
+              <><strong>{resultCount.toLocaleString('fi-FI')}</strong> puuta<span className="sr-only"> kartalla</span></>
+            )}
+          </p>
+          <button type="button" onClick={onOpenInfo} aria-label="Tietoja puuaineistosta">
+            <InfoIcon />
+          </button>
+        </section>
 
-      <section className="mobile-map-controls__peek" aria-label="Karttatulokset">
-        <span className="mobile-map-controls__handle" aria-hidden="true" />
-        <p role="status" aria-live="polite">
-          {loading ? (
-            'Ladataan puutietoja…'
-          ) : error ? (
-            error
-          ) : (
-            <><strong>{resultCount.toLocaleString('fi-FI')}</strong> puuta kartalla</>
-          )}
-        </p>
-        <button type="button" onClick={onOpenInfo} aria-label="Tietoja puuaineistosta">
-          <InfoIcon />
+        <button
+          type="button"
+          className="mobile-map-controls__filters"
+          onClick={onOpenFilters}
+          aria-label={`Suodattimet, ${activeFilterCount} aktiivista`}
+          aria-expanded={filtersOpen}
+        >
+          <FilterIcon />
+          <span>Suodattimet</span>
+          {activeFilterCount > 0 ? <span className="mobile-map-controls__filter-count">{activeFilterCount}</span> : null}
         </button>
-      </section>
+      </div>
     </div>
   )
 }

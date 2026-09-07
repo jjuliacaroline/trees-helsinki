@@ -62,13 +62,23 @@ export function MobileFilterSheet({
   const plantingYearErrorId = `${idPrefix}-planting-year-error`
 
   return (
-    <MobileBottomSheet open={open} ariaLabel="Suodattimet" onClose={onClose}>
+    <MobileBottomSheet open={open} ariaLabel="Suodattimet" onClose={onClose} showHandle={false}>
       <div className="mobile-filter-sheet">
         <header className="mobile-filter-sheet__header">
           <h2>Suodattimet</h2>
-          <button type="button" className="mobile-filter-sheet__reset" onClick={onReset}>
-            Tyhjennä
-          </button>
+          <div className="mobile-filter-sheet__header-actions">
+            <button type="button" className="mobile-filter-sheet__reset" onClick={onReset}>
+              Tyhjennä
+            </button>
+            <button
+              type="button"
+              className="mobile-filter-sheet__close"
+              onClick={onClose}
+              aria-label="Sulje suodattimet"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
         </header>
 
         <div className="mobile-filter-sheet__fields">

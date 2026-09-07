@@ -6,6 +6,7 @@ interface MobileBottomSheetProps {
   ariaLabel: string
   onClose: () => void
   children: ReactNode
+  showHandle?: boolean
 }
 
 export function MobileBottomSheet({
@@ -13,19 +14,22 @@ export function MobileBottomSheet({
   ariaLabel,
   onClose,
   children,
+  showHandle = true,
 }: MobileBottomSheetProps) {
   if (!open) return null
 
   return (
-    <section className="mobile-bottom-sheet" aria-label={ariaLabel}>
-      <button
-        type="button"
-        className="mobile-bottom-sheet__handle"
-        onClick={onClose}
-        aria-label={`Sulje ${ariaLabel.toLocaleLowerCase('fi-FI')}`}
-      >
-        <span aria-hidden="true" />
-      </button>
+    <section className={`mobile-bottom-sheet${showHandle ? '' : ' is-handleless'}`} aria-label={ariaLabel}>
+      {showHandle ? (
+        <button
+          type="button"
+          className="mobile-bottom-sheet__handle"
+          onClick={onClose}
+          aria-label={`Sulje ${ariaLabel.toLocaleLowerCase('fi-FI')}`}
+        >
+          <span aria-hidden="true" />
+        </button>
+      ) : null}
       <div className="mobile-bottom-sheet__content">{children}</div>
     </section>
   )
