@@ -529,7 +529,7 @@ summary {
     right: 14px;
     bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
     display: inline-flex;
-    min-height: 50px;
+    height: 40px;
     align-items: center;
     gap: 9px;
     padding: 0 14px;
@@ -539,6 +539,7 @@ summary {
     box-shadow: 0 8px 20px rgba(22, 101, 52, 0.28);
     color: #fff;
     cursor: pointer;
+    font-size: 0.95rem;
     font-weight: 700;
   }
 
