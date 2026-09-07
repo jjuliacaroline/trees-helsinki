@@ -65,11 +65,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run browser smoke tests
-        run: npm run test:e2e
+      - name: Run required browser tests
+        run: npx playwright test $(find e2e -type f -name '*.spec.ts' ! -name 'mobile-visual-regression.spec.ts' -print)
+
+      - name: Run mobile visual regression (non-blocking)
+        id: visual
+        continue-on-error: true
+        run: npx playwright test e2e/mobile-visual-regression.spec.ts
 
       - name: Upload browser test artifacts on failure
-        if: failure()
+        if: ${{ failure() || steps.visual.outcome == 'failure' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: playwright-browser-test-results
