@@ -68,7 +68,12 @@ test.describe('mobile map-first shell', () => {
     await expect(page.getByLabel('Hae puita kartalta')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Tallennetut puut, 0' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Suodattimet, 0 aktiivista' })).toBeVisible()
-    await expect(page.locator('.maplibregl-ctrl-attrib')).toHaveCount(0)
+    const attribution = page.locator('.maplibregl-ctrl-attrib')
+    await expect(attribution).toBeVisible()
+    await expect(attribution).not.toHaveAttribute('open')
+    await attribution.locator('summary').click()
+    await expect(attribution).toHaveAttribute('open', '')
+    await expect(attribution.locator('.maplibregl-ctrl-attrib-inner')).toBeVisible()
     await expect(page.locator('.tree-filter-panel')).not.toBeVisible()
     await expect(page.locator('.app-shell > .tree-data-info')).not.toBeVisible()
 
@@ -93,18 +98,6 @@ test.describe('mobile map-first shell', () => {
     await expect(info.getByRole('link', { name: 'CC BY 4.0' })).toHaveAttribute(
       'href',
       'https://creativecommons.org/licenses/by/4.0/',
-    )
-    await expect(info.getByRole('link', { name: 'OpenFreeMap' })).toHaveAttribute(
-      'href',
-      'https://openfreemap.org/',
-    )
-    await expect(info.getByRole('link', { name: 'OpenStreetMap' })).toHaveAttribute(
-      'href',
-      'https://www.openstreetmap.org/copyright',
-    )
-    await expect(info.getByRole('link', { name: 'MapLibre' })).toHaveAttribute(
-      'href',
-      'https://maplibre.org/',
     )
     await expect(info).toContainText('Snapshot muodostettu')
     await expect(info).toContainText('25.8.2026')

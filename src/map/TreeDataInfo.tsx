@@ -8,9 +8,6 @@ import './treeDataInfo.css'
 const METADATA_URL = `${import.meta.env.BASE_URL}data/generated/tree-metadata.json`
 const DATASET_URL = 'https://hri.fi/data/en_GB/dataset/helsingin-kaupungin-puurekisteri'
 const LICENSE_URL = 'https://creativecommons.org/licenses/by/4.0/'
-const OPENFREEMAP_URL = 'https://openfreemap.org/'
-const OPENSTREETMAP_COPYRIGHT_URL = 'https://www.openstreetmap.org/copyright'
-const MAPLIBRE_URL = 'https://maplibre.org/'
 
 function formatDate(value: string, includeTime = false): string {
   const date = new Date(value)
@@ -53,20 +50,6 @@ export function TreeDataInfo() {
         ·{' '}
         <a href={LICENSE_URL} target="_blank" rel="noreferrer">
           CC BY 4.0
-        </a>
-      </p>
-      <p>
-        <strong>Karttapohja:</strong>{' '}
-        <a href={OPENFREEMAP_URL} target="_blank" rel="noreferrer">
-          OpenFreeMap
-        </a>{' '}
-        · ©{' '}
-        <a href={OPENSTREETMAP_COPYRIGHT_URL} target="_blank" rel="noreferrer">
-          OpenStreetMap
-        </a>{' '}
-        ·{' '}
-        <a href={MAPLIBRE_URL} target="_blank" rel="noreferrer">
-          MapLibre
         </a>
       </p>
       {metadata ? (

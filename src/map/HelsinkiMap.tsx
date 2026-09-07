@@ -163,7 +163,6 @@ export function HelsinkiMap() {
     if (!containerRef.current) return
     setMapReady(false)
     const map = new Map({
-      attributionControl: false,
       container: containerRef.current,
       style: OPENFREEMAP_STYLE,
       center: HELSINKI_CENTER,
@@ -173,6 +172,12 @@ export function HelsinkiMap() {
     map.addControl(new NavigationControl(), 'top-right')
 
     map.on('load', () => {
+      const attributionControl = containerRef.current?.querySelector<HTMLElement>('.maplibregl-ctrl-attrib.maplibregl-compact')
+      if (attributionControl) {
+        attributionControl.removeAttribute('open')
+        attributionControl.classList.remove('maplibregl-compact-show')
+      }
+
       map.addSource(TREE_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, cluster: true, clusterMaxZoom: 14, clusterRadius: 50, clusterProperties: TREE_CLUSTER_PROPERTIES })
       map.addSource(TREE_HIGHLIGHT_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
       map.addSource(USER_LOCATION_SOURCE_ID, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
