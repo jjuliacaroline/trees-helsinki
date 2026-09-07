@@ -162,7 +162,13 @@ export function HelsinkiMap() {
   useEffect(() => {
     if (!containerRef.current) return
     setMapReady(false)
-    const map = new Map({ container: containerRef.current, style: OPENFREEMAP_STYLE, center: HELSINKI_CENTER, zoom: 11.5 })
+    const map = new Map({
+      attributionControl: false,
+      container: containerRef.current,
+      style: OPENFREEMAP_STYLE,
+      center: HELSINKI_CENTER,
+      zoom: 11.5,
+    })
     mapRef.current = map
     map.addControl(new NavigationControl(), 'top-right')
 

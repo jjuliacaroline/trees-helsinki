@@ -1,5 +1,4 @@
 import type { LocationStatus } from './TreeFilterPanel'
-import './mobileMapControls.css'
 
 interface MobileMapControlsProps {
   search: string
@@ -145,7 +144,7 @@ export function MobileMapControls({
       </button>
 
       <section className="mobile-map-controls__peek" aria-label="Karttatulokset">
-        <p role="status" aria-live="polite">
+        <p className={loading || error ? 'is-message' : 'is-count'} role="status" aria-live="polite">
           {loading ? (
             'Ladataan puutietoja…'
           ) : error ? (
