@@ -260,10 +260,18 @@ test.describe('mobile map-first shell', () => {
     const details = page.getByRole('region', { name: 'Valitun puun tiedot' })
     await expect(details).toBeVisible()
     await expect(details.getByRole('heading', { name: 'Luumu' })).toBeVisible()
+    await expect(details.getByRole('button', { name: 'Takaisin tallennettuihin puihin' })).toBeVisible()
     await expect(savedSheet).not.toBeVisible()
 
-    await page.getByRole('button', { name: 'Sulje valitun puun tiedot' }).click()
+    await details.getByRole('button', { name: 'Takaisin tallennettuihin puihin' }).click()
     await expect(savedSheet).toBeVisible()
+
+    await savedSheet.getByRole('button', { name: 'Näytä Luumu kartalla' }).click()
+    const reopenedDetails = page.getByRole('region', { name: 'Valitun puun tiedot' })
+    await reopenedDetails.getByRole('button', { name: 'Sulje valitun puun tiedot' }).click()
+    await expect(reopenedDetails).not.toBeVisible()
+    await expect(savedSheet).not.toBeVisible()
+    await expect(page.getByLabel('Karttatulokset')).toBeVisible()
   })
 
   test('presents technical placeholder names conservatively in saved and details views', async ({ page }) => {

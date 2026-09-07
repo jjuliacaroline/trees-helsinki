@@ -396,7 +396,14 @@ export function HelsinkiMap() {
           tree={visibleSelectedTree}
           isSaved={savedTreeIds.includes(visibleSelectedTree.properties.id)}
           distanceMeters={selectedTreeDistance}
-          onClose={() => setSelectedTree(null)}
+          onClose={() => {
+            setSelectedTree(null)
+            if (mobileSavedOpen) {
+              setMobileSavedOpen(false)
+              setViewMode('browse')
+            }
+          }}
+          onBack={mobileSavedOpen ? () => setSelectedTree(null) : undefined}
           onToggleSaved={toggleSelectedTreeSaved}
         />
       ) : null}
