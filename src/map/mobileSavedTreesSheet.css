@@ -34,7 +34,7 @@
 
   .mobile-saved-trees__header h2 {
     margin: 0;
-    padding: 0;
+    padding: 0 48px;
     color: #111;
     font-size: clamp(1.2rem, 5.2vw, 1.35rem);
     font-weight: 760;
@@ -43,30 +43,25 @@
     text-align: center;
   }
 
-  .mobile-saved-trees__back {
+  .mobile-saved-trees__close {
     position: absolute;
-    left: -16px;
-    display: inline-flex;
-    min-height: 44px;
-    align-items: center;
-    gap: 2px;
-    padding: 4px 8px;
+    right: -12px;
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    padding: 0;
     border: 0;
+    border-radius: 50%;
     background: transparent;
-    color: #16752a;
+    color: #111827;
     cursor: pointer;
-    font-size: 1.05rem;
-    font-weight: 620;
+    font-size: 2rem;
+    font-weight: 320;
+    line-height: 1;
   }
 
-  .mobile-saved-trees__back > span {
-    margin-top: -2px;
-    font-size: 2.3rem;
-    font-weight: 360;
-    line-height: 0.8;
-  }
-
-  .mobile-saved-trees__back:focus-visible,
+  .mobile-saved-trees__close:focus-visible,
   .mobile-saved-trees__select:focus-visible,
   .mobile-saved-trees__remove:focus-visible {
     outline: 3px solid rgba(31, 122, 47, 0.34);
@@ -204,11 +199,13 @@
 
 @media (max-width: 350px) {
   .mobile-saved-trees__header h2 {
+    padding-right: 42px;
+    padding-left: 42px;
     font-size: 1.2rem;
   }
 
-  .mobile-saved-trees__back {
-    font-size: 0.95rem;
+  .mobile-saved-trees__close {
+    right: -8px;
   }
 
   .mobile-saved-trees__select {
