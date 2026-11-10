@@ -62,7 +62,7 @@ export function MobileFilterSheet({
   const plantingYearErrorId = `${idPrefix}-planting-year-error`
 
   return (
-    <MobileBottomSheet open={open} ariaLabel="Suodattimet" onClose={onClose} showHandle={false}>
+    <MobileBottomSheet open={open} ariaLabel="Suodattimet" onClose={onClose} showCloseButton={false}>
       <div className="mobile-filter-sheet">
         <header className="mobile-filter-sheet__header">
           <h2>Suodattimet</h2>

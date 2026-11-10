@@ -59,7 +59,7 @@ export function MobileSavedTreesSheet({
   onRemoveTree,
 }: MobileSavedTreesSheetProps) {
   return (
-    <MobileBottomSheet open={open} ariaLabel="Tallennetut puut" onClose={onBack} showHandle={false}>
+    <MobileBottomSheet open={open} ariaLabel="Tallennetut puut" onClose={onBack} showCloseButton={false}>
       <section className="mobile-saved-trees">
         <header className="mobile-saved-trees__header">
           <h2>Tallennetut ({trees.length.toLocaleString('fi-FI')})</h2>
