@@ -118,7 +118,7 @@ export function MobileTreeDetailsSheet({
   }
 
   return (
-    <MobileBottomSheet open ariaLabel="Valitun puun tiedot" onClose={onClose} showHandle={!onBack}>
+    <MobileBottomSheet open ariaLabel="Valitun puun tiedot" onClose={onClose} showCloseButton={!onBack}>
       <article className="mobile-tree-details-sheet">
         {onBack ? (
           <nav className="mobile-tree-details-sheet__navigation" aria-label="Puun tietojen navigointi">

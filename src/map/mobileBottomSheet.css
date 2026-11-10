@@ -17,29 +17,28 @@
     box-shadow: 0 -10px 32px rgba(15, 23, 42, 0.16);
   }
 
-  .mobile-bottom-sheet__handle {
+  .mobile-bottom-sheet__close {
     display: grid;
     flex: 0 0 auto;
-    width: 100%;
-    min-height: 34px;
+    width: 44px;
+    height: 44px;
     place-items: center;
-    padding: 8px 0 6px;
+    align-self: flex-end;
+    margin: 4px 14px 0 0;
+    padding: 0;
     border: 0;
+    border-radius: 50%;
     background: transparent;
+    color: #111827;
     cursor: pointer;
+    font-size: 2rem;
+    font-weight: 320;
+    line-height: 1;
   }
 
-  .mobile-bottom-sheet__handle span {
-    display: block;
-    width: 42px;
-    height: 5px;
-    border-radius: 999px;
-    background: #b9bdc3;
-  }
-
-  .mobile-bottom-sheet__handle:focus-visible {
+  .mobile-bottom-sheet__close:focus-visible {
     outline: 3px solid rgba(31, 122, 47, 0.34);
-    outline-offset: -3px;
+    outline-offset: 2px;
   }
 
   .mobile-bottom-sheet__content {
@@ -49,7 +48,7 @@
     padding: 0 24px calc(22px + env(safe-area-inset-bottom, 0px));
   }
 
-  .mobile-bottom-sheet.is-handleless .mobile-bottom-sheet__content {
+  .mobile-bottom-sheet.is-closebuttonless .mobile-bottom-sheet__content {
     padding-top: 18px;
   }
 
