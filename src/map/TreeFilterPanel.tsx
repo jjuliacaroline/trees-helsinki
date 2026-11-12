@@ -97,7 +97,7 @@ export function TreeFilterPanel({
 
       <details className="tree-filter-panel__privacy">
         <summary>Tietosuoja</summary>
-        <p>Sijaintia käytetään vain, kun pyydät sitä selaimen geolocation-toiminnolla. Koordinaatit säilyvät selaimen muistissa eikä sovellus tallenna niitä. Tallennetut puut säilytetään localStoragessa vain vakaina numeerisina puutunnisteina. Karttapohja ladataan <a href="https://openfreemap.org/" target="_blank" rel="noreferrer">OpenFreeMapista</a>, joten katsotun alueen karttaresursseja pyydetään ulkoiselta palvelulta.</p>
+        <p>Sijaintia käytetään vain, kun pyydät sitä selaimen sijaintitoiminnolla. Sovellus pitää koordinaatit vain selaimen muistissa eikä lähetä niitä sovelluksen palvelimelle. Kartta keskitetään pyytämääsi sijaintiin, joten <a href="https://openfreemap.org/" target="_blank" rel="noreferrer">OpenFreeMap</a> saa näkyvän alueen karttaruutupyynnöt. Sovellus ei tallenna sijaintia. Tallennetut puut säilytetään localStoragessa vain vakaina numeerisina puutunnisteina.</p>
       </details>
     </section>
   )

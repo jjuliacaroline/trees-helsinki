@@ -8,6 +8,7 @@ import './treeDataInfo.css'
 const METADATA_URL = `${import.meta.env.BASE_URL}data/generated/tree-metadata.json`
 const DATASET_URL = 'https://hri.fi/data/en_GB/dataset/helsingin-kaupungin-puurekisteri'
 const LICENSE_URL = 'https://creativecommons.org/licenses/by/4.0/'
+const DATASET_MAINTAINER = 'Helsingin kaupunkiympäristön toimiala'
 
 function formatDate(value: string, includeTime = false): string {
   const date = new Date(value)
@@ -47,7 +48,7 @@ export function TreeDataInfo() {
         <a href={DATASET_URL} target="_blank" rel="noreferrer">
           Helsingin kaupungin puurekisteri
         </a>{' '}
-        ·{' '}
+        ({DATASET_MAINTAINER}) ·{' '}
         <a href={LICENSE_URL} target="_blank" rel="noreferrer">
           CC BY 4.0
         </a>
