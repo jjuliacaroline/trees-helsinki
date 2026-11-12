@@ -21,6 +21,7 @@ test('shows source attribution, snapshot metadata, and the data-quality notice',
 
   const info = page.getByLabel('Puutietojen lähde')
   await expect(info.getByRole('link', { name: 'Helsingin kaupungin puurekisteri' })).toBeVisible()
+  await expect(info).toContainText('Helsingin kaupunkiympäristön toimiala')
   await expect(info.getByRole('link', { name: 'CC BY 4.0' })).toBeVisible()
   await expect(info).toContainText('Snapshot muodostettu')
   await expect(info).toContainText('25.8.2026')

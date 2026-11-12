@@ -74,16 +74,18 @@ The registry contains public street and park trees and is not a complete invento
 
 Pull-request validation and production deployment are deliberately separate.
 
-`.github/workflows/ci.yml` runs deterministic code validation for pull requests and pushes to `main`. It installs dependencies, runs type checks and unit tests, executes Playwright smoke tests against committed fixture data, and builds the application. Normal CI does not fetch the live Helsinki WFS service, so pull requests are not coupled to upstream data availability.
+`.github/workflows/ci.yml` runs deterministic validation for pull requests and through manual dispatch. It installs dependencies, runs type checks and unit tests, executes Playwright browser tests against committed fixture data, and builds the application. The mobile visual regression job is non-blocking. Normal CI does not fetch the live Helsinki WFS service, so pull requests are not coupled to upstream data availability. Its Playwright package and browser container use the same version.
+
+`.github/workflows/security.yml` runs Gitleaks on pull requests and pushes to `main`.
 
 `.github/workflows/deploy.yml` owns production data refresh and GitHub Pages publishing. It runs on pushes to `main`, on a monthly schedule, and through manual `workflow_dispatch`. The production build job:
 
-1. installs dependencies and runs the repository checks and tests;
+1. installs dependencies with `npm ci`;
 2. fetches and validates the current Helsinki tree registry with `npm run data:fetch`;
-3. builds Vite with the `/trees-helsinki/` GitHub Pages repository base path;
+3. runs the production build, including the TypeScript application check, with the `/trees-helsinki/` GitHub Pages repository base path;
 4. uploads the complete `dist` directory as the Pages artifact.
 
-A separate deployment job depends on the build job and publishes only that completed artifact. If source fetching, validation, tests, or the build fail, deployment does not run and the existing published site is left in place.
+Unit and browser tests run in pull-request CI. The production workflow does not rerun them after a push to `main`. A separate deployment job depends on the build job and publishes only that completed artifact. If source fetching, validation, or the build fail, deployment does not run and the existing published site is left in place.
 
 Before the first deployment, configure the repository once in **Settings → Pages → Build and deployment → Source** and select **GitHub Actions**. The workflow then uses the repository `GITHUB_TOKEN`; no personal access token or deployment secret is needed.
 
@@ -101,7 +103,7 @@ The architecture does not require a custom backend, database, authentication, or
 
 The application source code is licensed under the [MIT License](LICENSE). That license applies to this repository's source code, not to external data or map resources.
 
-Tree data comes from the [City of Helsinki open tree registry](https://hri.fi/data/en_GB/dataset/helsingin-kaupungin-puurekisteri) and is credited under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The application displays the source, license credit, generated snapshot time, available source update information, and a coverage/data-quality notice alongside the map.
+Tree data comes from the [City of Helsinki open tree registry](https://hri.fi/data/en_GB/dataset/helsingin-kaupungin-puurekisteri), maintained by the City of Helsinki Urban Environment Division, and is credited under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The application displays the source and maintainer, license credit, generated snapshot time, available source update information, and a coverage/data-quality notice alongside the map.
 
 The basemap is provided by [OpenFreeMap](https://openfreemap.org/). Its upstream map data comes from [OpenStreetMap](https://www.openstreetmap.org/), so the map's upstream attribution and licensing terms apply separately from this repository's MIT license.
 
