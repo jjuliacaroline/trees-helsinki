@@ -66,39 +66,6 @@ The same ingestion run writes generated snapshot metadata, including the generat
 public/data/generated/tree-metadata.json
 ```
 
-The generated live snapshot and metadata are intentionally gitignored and should not be committed as normal repository history. Small source-like fixtures are committed only for deterministic tests.
-
-The registry contains public street and park trees and is not a complete inventory of every tree in Helsinki. Source records can also contain missing or inaccurate values, so unknown optional values remain `null` rather than being invented by the application.
-
-## CI and GitHub Pages deployment
-
-Pull-request validation and production deployment are deliberately separate.
-
-`.github/workflows/ci.yml` runs deterministic validation for pull requests and through manual dispatch. It installs dependencies, runs type checks and unit tests, executes Playwright browser tests against committed fixture data, and builds the application. The mobile visual regression job is non-blocking. Normal CI does not fetch the live Helsinki WFS service, so pull requests are not coupled to upstream data availability. Its Playwright package and browser container use the same version.
-
-`.github/workflows/security.yml` runs Gitleaks on pull requests and pushes to `main`.
-
-`.github/workflows/deploy.yml` owns production data refresh and GitHub Pages publishing. It runs on pushes to `main`, on a monthly schedule, and through manual `workflow_dispatch`. The production build job:
-
-1. installs dependencies with `npm ci`;
-2. fetches and validates the current Helsinki tree registry with `npm run data:fetch`;
-3. runs the production build, including the TypeScript application check, with the `/trees-helsinki/` GitHub Pages repository base path;
-4. uploads the complete `dist` directory as the Pages artifact.
-
-Unit and browser tests run in pull-request CI. The production workflow does not rerun them after a push to `main`. A separate deployment job depends on the build job and publishes only that completed artifact. If source fetching, validation, or the build fail, deployment does not run and the existing published site is left in place.
-
-Before the first deployment, configure the repository once in **Settings → Pages → Build and deployment → Source** and select **GitHub Actions**. The workflow then uses the repository `GITHUB_TOKEN`; no personal access token or deployment secret is needed.
-
-The scheduled refresh produces deployment artifacts only. It does not create a monthly Git commit containing the generated tree dataset.
-
-For local development, run `npm run data:fetch` when you need a fresh live dataset. The normal Vite development server continues to use the root base path rather than the GitHub Pages repository path.
-
-## Product direction
-
-- Keep hosting and data refresh static and free-first.
-
-The architecture does not require a custom backend, database, authentication, or server-side rendering.
-
 ## Licensing and attribution
 
 The application source code is licensed under the [MIT License](LICENSE). That license applies to this repository's source code, not to external data or map resources.
